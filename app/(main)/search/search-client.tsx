@@ -83,7 +83,36 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
                 <option value="">الكل</option>
                 <option value="مصر">مصر</option>
                 <option value="السعودية">السعودية</option>
+                <option value="الأردن">الأردن</option>
+                <option value="الإمارات">الإمارات</option>
+                <option value="البحرين">البحرين</option>
+                <option value="الجزائر">الجزائر</option>
+                <option value="السودان">السودان</option>
+                <option value="الصومال">الصومال</option>
+                <option value="العراق">العراق</option>
+                <option value="الكويت">الكويت</option>
                 <option value="المغرب">المغرب</option>
+                <option value="اليمن">اليمن</option>
+                <option value="تونس">تونس</option>
+                <option value="جزر القمر">جزر القمر</option>
+                <option value="جيبوتي">جيبوتي</option>
+                <option value="سوريا">سوريا</option>
+                <option value="عمان">عمان</option>
+                <option value="فلسطين">فلسطين</option>
+                <option value="قطر">قطر</option>
+                <option value="لبنان">لبنان</option>
+                <option value="ليبيا">ليبيا</option>
+                <option value="موريتانيا">موريتانيا</option>
+                <option disabled>──────────</option>
+                <option value="أستراليا">أستراليا</option>
+                <option value="ألمانيا">ألمانيا</option>
+                <option value="المملكة المتحدة">المملكة المتحدة</option>
+                <option value="الولايات المتحدة">الولايات المتحدة</option>
+                <option value="إيطاليا">إيطاليا</option>
+                <option value="تركيا">تركيا</option>
+                <option value="فرنسا">فرنسا</option>
+                <option value="كندا">كندا</option>
+                <option value="أخرى">أخرى</option>
               </select>
             </div>
 
@@ -93,7 +122,36 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
                 <option value="">الكل</option>
                 <option value="مصر">مصر</option>
                 <option value="السعودية">السعودية</option>
+                <option value="الأردن">الأردن</option>
+                <option value="الإمارات">الإمارات</option>
+                <option value="البحرين">البحرين</option>
+                <option value="الجزائر">الجزائر</option>
+                <option value="السودان">السودان</option>
+                <option value="الصومال">الصومال</option>
+                <option value="العراق">العراق</option>
+                <option value="الكويت">الكويت</option>
                 <option value="المغرب">المغرب</option>
+                <option value="اليمن">اليمن</option>
+                <option value="تونس">تونس</option>
+                <option value="جزر القمر">جزر القمر</option>
+                <option value="جيبوتي">جيبوتي</option>
+                <option value="سوريا">سوريا</option>
+                <option value="عمان">عمان</option>
+                <option value="فلسطين">فلسطين</option>
+                <option value="قطر">قطر</option>
+                <option value="لبنان">لبنان</option>
+                <option value="ليبيا">ليبيا</option>
+                <option value="موريتانيا">موريتانيا</option>
+                <option disabled>──────────</option>
+                <option value="أستراليا">أستراليا</option>
+                <option value="ألمانيا">ألمانيا</option>
+                <option value="المملكة المتحدة">المملكة المتحدة</option>
+                <option value="الولايات المتحدة">الولايات المتحدة</option>
+                <option value="إيطاليا">إيطاليا</option>
+                <option value="تركيا">تركيا</option>
+                <option value="فرنسا">فرنسا</option>
+                <option value="كندا">كندا</option>
+                <option value="أخرى">أخرى</option>
               </select>
             </div>
 
@@ -105,6 +163,7 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
                 <option value="متزوج/ـة">متزوج/ـة</option>
                 <option value="مطلق/ـة">مطلق/ـة</option>
                 <option value="أرمل/ـة">أرمل/ـة</option>
+                <option value="عاقد القران">عاقد القران</option>
               </select>
             </div>
 

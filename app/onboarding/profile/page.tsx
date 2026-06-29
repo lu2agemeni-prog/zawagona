@@ -209,8 +209,35 @@ export default function ProfileSetupPage() {
                     <option value="">اختر الجنسية</option>
                     <option value="مصر">مصر</option>
                     <option value="السعودية">السعودية</option>
-                    <option value="المغرب">المغرب</option>
+                    <option value="الأردن">الأردن</option>
+                    <option value="الإمارات">الإمارات</option>
+                    <option value="البحرين">البحرين</option>
                     <option value="الجزائر">الجزائر</option>
+                    <option value="السودان">السودان</option>
+                    <option value="الصومال">الصومال</option>
+                    <option value="العراق">العراق</option>
+                    <option value="الكويت">الكويت</option>
+                    <option value="المغرب">المغرب</option>
+                    <option value="اليمن">اليمن</option>
+                    <option value="تونس">تونس</option>
+                    <option value="جزر القمر">جزر القمر</option>
+                    <option value="جيبوتي">جيبوتي</option>
+                    <option value="سوريا">سوريا</option>
+                    <option value="عمان">عمان</option>
+                    <option value="فلسطين">فلسطين</option>
+                    <option value="قطر">قطر</option>
+                    <option value="لبنان">لبنان</option>
+                    <option value="ليبيا">ليبيا</option>
+                    <option value="موريتانيا">موريتانيا</option>
+                    <option disabled>──────────</option>
+                    <option value="أستراليا">أستراليا</option>
+                    <option value="ألمانيا">ألمانيا</option>
+                    <option value="المملكة المتحدة">المملكة المتحدة</option>
+                    <option value="الولايات المتحدة">الولايات المتحدة</option>
+                    <option value="إيطاليا">إيطاليا</option>
+                    <option value="تركيا">تركيا</option>
+                    <option value="فرنسا">فرنسا</option>
+                    <option value="كندا">كندا</option>
                     <option value="أخرى">أخرى</option>
                   </select>
                 </div>
@@ -220,7 +247,35 @@ export default function ProfileSetupPage() {
                     <option value="">اختر الإقامة</option>
                     <option value="مصر">مصر</option>
                     <option value="السعودية">السعودية</option>
+                    <option value="الأردن">الأردن</option>
+                    <option value="الإمارات">الإمارات</option>
+                    <option value="البحرين">البحرين</option>
+                    <option value="الجزائر">الجزائر</option>
+                    <option value="السودان">السودان</option>
+                    <option value="الصومال">الصومال</option>
+                    <option value="العراق">العراق</option>
+                    <option value="الكويت">الكويت</option>
                     <option value="المغرب">المغرب</option>
+                    <option value="اليمن">اليمن</option>
+                    <option value="تونس">تونس</option>
+                    <option value="جزر القمر">جزر القمر</option>
+                    <option value="جيبوتي">جيبوتي</option>
+                    <option value="سوريا">سوريا</option>
+                    <option value="عمان">عمان</option>
+                    <option value="فلسطين">فلسطين</option>
+                    <option value="قطر">قطر</option>
+                    <option value="لبنان">لبنان</option>
+                    <option value="ليبيا">ليبيا</option>
+                    <option value="موريتانيا">موريتانيا</option>
+                    <option disabled>──────────</option>
+                    <option value="أستراليا">أستراليا</option>
+                    <option value="ألمانيا">ألمانيا</option>
+                    <option value="المملكة المتحدة">المملكة المتحدة</option>
+                    <option value="الولايات المتحدة">الولايات المتحدة</option>
+                    <option value="إيطاليا">إيطاليا</option>
+                    <option value="تركيا">تركيا</option>
+                    <option value="فرنسا">فرنسا</option>
+                    <option value="كندا">كندا</option>
                     <option value="أخرى">أخرى</option>
                   </select>
                 </div>
@@ -232,6 +287,7 @@ export default function ProfileSetupPage() {
                     <option value="متزوج/ـة">متزوج/ـة</option>
                     <option value="مطلق/ـة">مطلق/ـة</option>
                     <option value="أرمل/ـة">أرمل/ـة</option>
+                    <option value="عاقد القران">عاقد القران</option>
                   </select>
                 </div>
                 <div>
@@ -241,7 +297,10 @@ export default function ProfileSetupPage() {
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
-                    <option value="4">4 أو أكثر</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7 أو أكثر</option>
                   </select>
                 </div>
                 <div>
@@ -250,6 +309,7 @@ export default function ProfileSetupPage() {
                     <option value="">هل تدخن؟</option>
                     <option value="no">لا</option>
                     <option value="yes">نعم</option>
+                    <option value="sometimes">أحياناً</option>
                   </select>
                 </div>
               </div>
@@ -286,6 +346,7 @@ export default function ProfileSetupPage() {
                     <option value="أبيض">أبيض</option>
                     <option value="قمحي">قمحي</option>
                     <option value="أسمر">أسمر</option>
+                    <option value="أسود">أسود</option>
                   </select>
                 </div>
                 <div>
@@ -296,6 +357,7 @@ export default function ProfileSetupPage() {
                     <option value="متوسط">متوسط</option>
                     <option value="رياضي">رياضي</option>
                     <option value="ممتلئ">ممتلئ</option>
+                    <option value="بدين">بدين</option>
                   </select>
                 </div>
                 {gender === 'male' && (
@@ -322,6 +384,8 @@ export default function ProfileSetupPage() {
                     <option value="">اختر</option>
                     <option value="لا توجد">لا توجد</option>
                     <option value="توجد إعاقة حركية">توجد إعاقة حركية</option>
+                    <option value="توجد إعاقة بصرية">توجد إعاقة بصرية</option>
+                    <option value="توجد إعاقة سمعية">توجد إعاقة سمعية</option>
                     <option value="أخرى">أخرى</option>
                   </select>
                 </div>
@@ -345,7 +409,17 @@ export default function ProfileSetupPage() {
                     <option value="طبيب">طبيب</option>
                     <option value="مهندس">مهندس</option>
                     <option value="معلم">معلم</option>
+                    <option value="محاسب">محاسب</option>
+                    <option value="محامي">محامي</option>
+                    <option value="صيدلي">صيدلي</option>
+                    <option value="إعلامي">إعلامي</option>
+                    <option value="مبرمج">مبرمج</option>
+                    <option value="صاحب عمل">صاحب عمل</option>
+                    <option value="موظف حكومي">موظف حكومي</option>
+                    <option value="موظف قطاع خاص">موظف قطاع خاص</option>
                     <option value="أعمال حرة">أعمال حرة</option>
+                    <option value="طالب">طالب</option>
+                    <option value="بدون عمل">بدون عمل</option>
                     <option value="أخرى">أخرى</option>
                   </select>
                 </div>
@@ -353,15 +427,22 @@ export default function ProfileSetupPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">المؤهل</label>
                   <select name="qualification" required value={formData.qualification} onChange={handleChange} className={selectClass}>
                     <option value="">اختر المؤهل</option>
+                    <option value="بدون مؤهل">بدون مؤهل</option>
+                    <option value="يقرأ ويكتب">يقرأ ويكتب</option>
+                    <option value="ابتدائي">ابتدائي</option>
+                    <option value="إعدادي">إعدادي</option>
                     <option value="ثانوي">ثانوي</option>
+                    <option value="دبلوم">دبلوم</option>
                     <option value="جامعي">جامعي</option>
-                    <option value="دراسات عليا">دراسات عليا</option>
+                    <option value="ماجستير">ماجستير</option>
+                    <option value="دكتوراه">دكتوراه</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">مستوى الدخل</label>
                   <select name="income_level" required value={formData.income_level} onChange={handleChange} className={selectClass}>
                     <option value="">اختر مستوى الدخل</option>
+                    <option value="ضعيف">ضعيف</option>
                     <option value="متوسط">متوسط</option>
                     <option value="جيد">جيد</option>
                     <option value="ممتاز">ممتاز</option>
@@ -384,6 +465,7 @@ export default function ProfileSetupPage() {
                     <option value="ملتزم جداً">ملتزم جداً</option>
                     <option value="ملتزم">ملتزم</option>
                     <option value="متوسط">متوسط</option>
+                    <option value="غير ملتزم">غير ملتزم</option>
                   </select>
                 </div>
                 <div>
@@ -393,6 +475,7 @@ export default function ProfileSetupPage() {
                     <option value="أصلي دائماً">أصلي دائماً</option>
                     <option value="أغلب الأوقات">أغلب الأوقات</option>
                     <option value="متقطع">متقطع</option>
+                    <option value="لا أصلي">لا أصلي</option>
                   </select>
                 </div>
               </div>
