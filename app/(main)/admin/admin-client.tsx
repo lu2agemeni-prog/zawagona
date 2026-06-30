@@ -51,18 +51,17 @@ export default function AdminClient() {
   };
 
   const handleApproveUser = async (id: string) => {
-    await supabase.from('profiles').update({ is_approved: true }).eq('id', id);
+    await supabase.rpc('admin_update_profile', { target_id: id, new_is_approved: true, new_is_premium: null });
     setPendingUsers(prev => prev.filter(u => u.id !== id));
   };
 
   const handleApprovePremium = async (id: string, userId: string) => {
-    await supabase.from('profiles').update({ is_premium: true }).eq('id', userId);
-    await supabase.from('premium_requests').update({ status: 'approved' }).eq('id', id);
+    await supabase.rpc('admin_approve_premium', { request_id: id, target_user_id: userId });
     setPremiumRequests(prev => prev.filter(p => p.id !== id));
   };
 
   const handleResolveReport = async (id: string) => {
-    await supabase.from('reports').update({ status: 'resolved' }).eq('id', id);
+    await supabase.rpc('admin_resolve_report', { report_id: id });
     setReports(prev => prev.filter(r => r.id !== id));
   };
 

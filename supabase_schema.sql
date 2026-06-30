@@ -59,9 +59,42 @@ alter table public.profiles enable row level security;
 create policy "Public profiles are viewable by everyone." on public.profiles for select using (true);
 create policy "Users can insert their own profile." on public.profiles for insert with check (auth.uid() = id);
 create policy "Users can update own profile." on public.profiles for update using (auth.uid() = id);
-create policy "Admins can update profiles." on public.profiles for update using (
-  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-);
+
+-- Admin RPC for updating profiles securely
+create or replace function public.admin_update_profile(target_id uuid, new_is_approved boolean, new_is_premium boolean)
+returns void as $$
+begin
+  if not exists (select 1 from public.profiles where id = auth.uid() and is_admin = true) then
+    raise exception 'Unauthorized';
+  end if;
+
+  update public.profiles
+  set 
+    is_approved = coalesce(new_is_approved, is_approved),
+    is_premium = coalesce(new_is_premium, is_premium)
+  where id = target_id;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger to re-approve profiles on sensitive changes
+create or replace function public.handle_profile_update()
+returns trigger as $$
+begin
+  if auth.uid() = new.id then
+    if (old.about_me is distinct from new.about_me) or 
+       (old.partner_specs is distinct from new.partner_specs) or 
+       (old.avatar_url is distinct from new.avatar_url) or
+       (old.age is distinct from new.age) then
+      new.is_approved := false;
+    end if;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_profile_update
+  before update on public.profiles
+  for each row execute procedure public.handle_profile_update();
 
 -- INTERESTS TABLE (Likes, Ignores, Blocks)
 create table public.interests (
@@ -127,9 +160,6 @@ create policy "Users can insert reports" on public.reports for insert with check
 create policy "Admins can view reports" on public.reports for select using (
   exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
 );
-create policy "Admins can update reports" on public.reports for update using (
-  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-);
 
 -- PROFILE VISITS TABLE
 create table public.profile_visits (
@@ -159,9 +189,6 @@ create policy "Users can view own premium requests" on public.premium_requests f
 create policy "Admins can view premium requests" on public.premium_requests for select using (
   exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
 );
-create policy "Admins can update premium requests" on public.premium_requests for update using (
-  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-);
 
 -- Function to handle new user signup
 create or replace function public.handle_new_user() 
@@ -178,7 +205,58 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
--- Helper Function: Notify on Interest
+-- Helper Function: Rate Limiting
+create or replace function public.rate_limit_requests()
+returns trigger as $$
+declare
+  recent_count int;
+begin
+  if TG_TABLE_NAME = 'reports' then
+    select count(*) into recent_count from public.reports 
+    where reporter_id = auth.uid() and created_at > now() - interval '1 day';
+    if recent_count >= 5 then
+      raise exception 'لقد وصلت للحد الأقصى من البلاغات اليومية.';
+    end if;
+  elsif TG_TABLE_NAME = 'premium_requests' then
+    select count(*) into recent_count from public.premium_requests 
+    where user_id = auth.uid() and status = 'pending';
+    if recent_count >= 2 then
+      raise exception 'لديك طلبات تميز معلقة مسبقاً.';
+    end if;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger tr_rate_limit_reports
+  before insert on public.reports
+  for each row execute procedure public.rate_limit_requests();
+
+create trigger tr_rate_limit_premium
+  before insert on public.premium_requests
+  for each row execute procedure public.rate_limit_requests();
+
+-- Admin RPCs for resolving requests
+create or replace function public.admin_resolve_report(report_id uuid)
+returns void as $$
+begin
+  if not exists (select 1 from public.profiles where id = auth.uid() and is_admin = true) then
+    raise exception 'Unauthorized';
+  end if;
+  update public.reports set status = 'resolved' where id = report_id;
+end;
+$$ language plpgsql security definer;
+
+create or replace function public.admin_approve_premium(request_id uuid, target_user_id uuid)
+returns void as $$
+begin
+  if not exists (select 1 from public.profiles where id = auth.uid() and is_admin = true) then
+    raise exception 'Unauthorized';
+  end if;
+  update public.premium_requests set status = 'approved' where id = request_id;
+  update public.profiles set is_premium = true where id = target_user_id;
+end;
+$$ language plpgsql security definer;
 create or replace function public.notify_on_interest()
 returns trigger as $$
 begin

@@ -105,7 +105,7 @@ export default function EditProfileClient({ profile }: { profile: any }) {
       
       setSuccess(true);
       setTimeout(() => {
-        router.push('/profile');
+        router.push('/pending-approval');
         router.refresh();
       }, 2000);
       
@@ -139,9 +139,9 @@ export default function EditProfileClient({ profile }: { profile: any }) {
       )}
 
       {success && (
-        <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-lg text-sm border border-green-200 flex items-center">
+        <div className="mb-6 p-4 bg-amber-50 text-amber-700 rounded-lg text-sm border border-amber-200 flex items-center">
           <CheckCircle2 className="w-5 h-5 mr-2" />
-          تم تحديث البيانات بنجاح! جاري العودة...
+          تم حفظ التعديلات. حسابك الآن قيد المراجعة من الإدارة مرة أخرى لضمان جودة المنصة.
         </div>
       )}
 
