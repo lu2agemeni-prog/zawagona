@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
-import { Search, Filter, ArrowLeft, Heart, UserX, UserMinus, Star } from 'lucide-react';
+import { Search, Filter, ArrowLeft, Heart, UserX, UserMinus, Star, User, Image as ImageIcon, SearchX, Loader2 } from '@/components/icons';
 
 export default function SearchClient({ targetGender, isPremium }: { targetGender: string, isPremium: boolean }) {
   const supabase = createClient();
@@ -100,38 +100,38 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
     handleSearch(1);
   }, []);
 
-  const selectClass = "block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white border";
+  const selectClass = "block w-full rounded-xl border-slate-200 py-2.5 pl-3 pr-10 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 bg-surface-50 border transition-colors";
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
+    <div className="flex flex-col md:flex-row gap-6 animate-in fade-in duration-500">
       {/* Filters Sidebar */}
-      <div className="w-full md:w-64 space-y-6">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-          <h3 className="font-bold text-slate-800 mb-4 flex items-center">
-            <Filter className="h-4 w-4 mr-2" /> بحث سريع
+      <div className="w-full md:w-72 space-y-6 flex-shrink-0">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h3 className="font-black text-slate-800 mb-5 flex items-center text-lg">
+            <Filter className="h-5 w-5 mr-2 text-primary-600" /> فلترة البحث
           </h3>
           
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">السن (من - إلى)</label>
-              <div className="flex gap-2">
+              <label className="block text-xs font-bold text-slate-600 mb-2">السن (من - إلى)</label>
+              <div className="flex gap-3">
                 <input 
                   type="number" 
                   value={ageRange.min} 
                   onChange={e => setAgeRange({...ageRange, min: parseInt(e.target.value) || 18})}
-                  className="w-full rounded-md border-gray-300 py-1.5 px-3 text-sm border"
+                  className="w-full rounded-xl border-slate-200 py-2.5 px-3 text-sm border bg-surface-50 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
                 />
                 <input 
                   type="number" 
                   value={ageRange.max} 
                   onChange={e => setAgeRange({...ageRange, max: parseInt(e.target.value) || 60})}
-                  className="w-full rounded-md border-gray-300 py-1.5 px-3 text-sm border"
+                  className="w-full rounded-xl border-slate-200 py-2.5 px-3 text-sm border bg-surface-50 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">الجنسية</label>
+              <label className="block text-xs font-bold text-slate-600 mb-2">الجنسية</label>
               <select value={nationality} onChange={e => setNationality(e.target.value)} className={selectClass}>
                 <option value="">الكل</option>
                 <option value="مصر">مصر</option>
@@ -170,7 +170,7 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">الإقامة</label>
+              <label className="block text-xs font-bold text-slate-600 mb-2">الإقامة</label>
               <select value={residence} onChange={e => setResidence(e.target.value)} className={selectClass}>
                 <option value="">الكل</option>
                 <option value="مصر">مصر</option>
@@ -209,7 +209,7 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">الحالة الاجتماعية</label>
+              <label className="block text-xs font-bold text-slate-600 mb-2">الحالة الاجتماعية</label>
               <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} className={selectClass}>
                 <option value="">الكل</option>
                 <option value="أعزب/عزباء">أعزب/عزباء</option>
@@ -221,7 +221,7 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">ترتيب النتائج</label>
+              <label className="block text-xs font-bold text-slate-600 mb-2">ترتيب النتائج</label>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={selectClass}>
                 <option value="created_at">الأحدث تسجيلاً</option>
                 <option value="age_asc">الأصغر سناً</option>
@@ -231,7 +231,7 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
 
             <button
               onClick={() => handleSearch(1)}
-              className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white font-medium text-sm hover:bg-indigo-700 transition"
+              className="w-full rounded-xl bg-primary-600 px-4 py-3 text-white font-bold text-sm hover:bg-primary-700 hover:shadow-md transition-all active:scale-[0.98]"
             >
               بحث
             </button>
@@ -241,40 +241,45 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
 
       {/* Results Area */}
       <div className="flex-1">
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        {loading && page === 1 ? (
+          <div className="flex flex-col justify-center items-center h-64 text-primary-600">
+            <Loader2 className="animate-spin h-10 w-10 mb-4" />
+            <span className="font-medium">جاري البحث...</span>
           </div>
         ) : (
           <div>
-            <div className="mb-4 text-sm text-slate-500">
-              تم العثور على {results.length} نتيجة
+            <div className="mb-4 text-sm font-medium text-slate-500 bg-white inline-block px-4 py-1.5 rounded-full border border-slate-100 shadow-sm">
+              تم العثور على <span className="font-bold text-primary-600">{results.length}</span> نتيجة
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {results.map((profile) => (
-                <div key={profile.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition flex flex-col">
-                  <div className="h-40 bg-slate-100 flex flex-col items-center justify-center relative">
-                    <span className="text-5xl">{profile.avatar_url?.includes('avatar') ? '👤' : '📸'}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+              {results.map((profile, idx) => (
+                <div key={profile.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg hover:border-primary-100 hover:-translate-y-1 transition-all duration-300 flex flex-col group animate-in zoom-in-95 fill-mode-both" style={{ animationDelay: `${idx * 50}ms` }}>
+                  <div className="h-44 bg-surface-50 flex flex-col items-center justify-center relative group-hover:bg-primary-50/50 transition-colors">
+                    {profile.avatar_url?.includes('avatar') ? (
+                      <User className="w-16 h-16 text-slate-300 group-hover:text-primary-300 transition-colors" />
+                    ) : (
+                      <ImageIcon className="w-16 h-16 text-slate-300 group-hover:text-primary-300 transition-colors" />
+                    )}
                     {profile.is_premium && (
-                      <div className="absolute top-2 right-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center">
+                      <div className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center shadow-sm">
                         <Star className="h-3 w-3 mr-1 fill-current" /> متميز
                       </div>
                     )}
                   </div>
-                  <div className="p-4 flex-1 flex flex-col">
-                    <div className="font-bold text-slate-900 truncate flex items-center justify-between">
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="font-bold text-slate-900 truncate flex items-center justify-between group-hover:text-primary-700 transition-colors">
                       {profile.username || 'عضو'}
-                      <span className="text-xs text-slate-500 font-normal">#{profile.id.substring(0, 5)}</span>
+                      <span className="text-xs text-slate-400 font-normal">#{profile.id.substring(0, 5)}</span>
                     </div>
-                    <div className="text-sm text-slate-600 mt-2 space-y-1">
-                      <div>{profile.age} سنة • {profile.residence}</div>
-                      <div>{profile.marital_status}</div>
+                    <div className="text-sm font-medium text-slate-600 mt-3 space-y-1.5">
+                      <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-slate-200 ml-2"></span>{profile.age} سنة • {profile.residence}</div>
+                      <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-slate-200 ml-2"></span>{profile.marital_status}</div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <div className="mt-5 pt-4 border-t border-slate-50 flex items-center justify-between gap-2">
                       <Link 
                         href={`/profile/${profile.id}`}
-                        className="flex-1 text-center bg-indigo-50 text-indigo-700 hover:bg-indigo-100 py-1.5 rounded-md text-sm font-medium transition"
+                        className="flex-1 text-center bg-primary-50 text-primary-700 hover:bg-primary-100 py-2.5 rounded-xl text-sm font-bold transition-colors"
                       >
                         عرض الملف
                       </Link>
@@ -284,20 +289,28 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
               ))}
               
               {results.length === 0 && !loading && (
-                <div className="col-span-full py-12 text-center text-slate-500 bg-white rounded-xl border border-slate-100">
-                  لا توجد نتائج تطابق بحثك. جرب تغيير فلاتر البحث.
+                <div className="col-span-full py-20 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-dashed border-slate-200 shadow-sm">
+                  <div className="w-20 h-20 bg-surface-50 rounded-full flex items-center justify-center mb-5">
+                    <SearchX className="w-10 h-10 text-slate-400" />
+                  </div>
+                  <h4 className="text-xl font-bold text-slate-800 mb-2">لا توجد نتائج تطابق بحثك</h4>
+                  <p className="text-sm font-medium text-slate-500 max-w-sm">جرب تغيير فلاتر البحث أو توسيع النطاق العمري للحصول على نتائج أكثر.</p>
                 </div>
               )}
             </div>
             
             {hasMore && results.length > 0 && (
-              <div className="mt-8 flex justify-center">
+              <div className="mt-10 flex justify-center">
                 <button
                   onClick={handleLoadMore}
                   disabled={loading}
-                  className="px-6 py-2 bg-white border border-indigo-200 text-indigo-700 rounded-full font-medium hover:bg-indigo-50 transition shadow-sm disabled:opacity-50"
+                  className="px-8 py-3 bg-white border border-primary-200 text-primary-700 rounded-full font-bold hover:bg-primary-50 hover:shadow-md transition-all disabled:opacity-50 flex items-center gap-2"
                 >
-                  {loading ? 'جاري التحميل...' : 'عرض المزيد'}
+                  {loading ? (
+                    <><Loader2 className="animate-spin h-5 w-5" /> جاري التحميل...</>
+                  ) : (
+                    'عرض المزيد'
+                  )}
                 </button>
               </div>
             )}

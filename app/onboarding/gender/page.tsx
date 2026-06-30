@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { User, UserRound } from 'lucide-react';
+import { User, UserRound } from '@/components/icons';
 import { createClient } from '@/utils/supabase/client';
 import { useState } from 'react';
 

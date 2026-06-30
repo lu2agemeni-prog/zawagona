@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { CheckCircle2, ChevronRight, Save } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Save } from '@/components/icons';
 import Link from 'next/link';
 
 export default function EditProfileClient({ profile }: { profile: any }) {

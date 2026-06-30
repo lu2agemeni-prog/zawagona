@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Bell } from 'lucide-react';
+import { Bell } from '@/components/icons';
 
 export default async function NotificationsPage() {
   const cookieStore = await cookies();

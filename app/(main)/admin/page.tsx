@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Users, CreditCard, ShieldAlert } from 'lucide-react';
+import { Users, CreditCard, ShieldAlert } from '@/components/icons';
 import AdminClient from './admin-client';
 
 export default async function AdminDashboard() {

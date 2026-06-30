@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from '@/components/icons';
 
 export default function ReportButton({ reportedId, currentUserId }: { reportedId: string, currentUserId?: string }) {
   const [showDialog, setShowDialog] = useState(false);

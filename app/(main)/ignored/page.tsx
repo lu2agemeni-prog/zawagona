@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { UserX } from 'lucide-react';
+import { UserX } from '@/components/icons';
 
 export default async function IgnoredPage() {
   const cookieStore = await cookies();

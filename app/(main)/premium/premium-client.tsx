@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Star, CheckCircle, Smartphone, CreditCard, Shield } from 'lucide-react';
+import { Star, CheckCircle, Smartphone, CreditCard, Shield } from '@/components/icons';
 
 export default function PremiumClient({ userId, isPremium, premiumUntil }: { userId: string, isPremium?: boolean, premiumUntil?: string }) {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
