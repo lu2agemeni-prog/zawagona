@@ -20,7 +20,7 @@ export default function RegisterForm() {
     setError(null);
 
     // Sign up with Supabase
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -32,6 +32,12 @@ export default function RegisterForm() {
 
     if (signUpError) {
       setError(signUpError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!data.session) {
+      setError('تم التسجيل بنجاح. يرجى مراجعة بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول.');
       setLoading(false);
       return;
     }

@@ -104,15 +104,47 @@ create table public.notifications (
 
 alter table public.notifications enable row level security;
 create policy "Users can view own notifications" on public.notifications for select using (auth.uid() = user_id);
-create policy "System can insert notifications" on public.notifications for insert with check (true);
+create policy "System can insert notifications" on public.notifications for insert with check (false);
 create policy "Users can update own notifications" on public.notifications for update using (auth.uid() = user_id);
+
+-- REPORTS TABLE
+create table public.reports (
+  id uuid default uuid_generate_v4() primary key,
+  reporter_id uuid references public.profiles(id) on delete cascade not null,
+  reported_id uuid references public.profiles(id) on delete cascade not null,
+  reason text not null,
+  status text default 'pending',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.reports enable row level security;
+create policy "Users can insert reports" on public.reports for insert with check (auth.uid() = reporter_id);
+create policy "Admins can view reports" on public.reports for select using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
+
+-- PREMIUM REQUESTS TABLE
+create table public.premium_requests (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  package_name text not null,
+  status text default 'pending',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.premium_requests enable row level security;
+create policy "Users can insert premium requests" on public.premium_requests for insert with check (auth.uid() = user_id);
+create policy "Users can view own premium requests" on public.premium_requests for select using (auth.uid() = user_id);
+create policy "Admins can view premium requests" on public.premium_requests for select using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
 
 -- Function to handle new user signup
 create or replace function public.handle_new_user() 
 returns trigger as $$
 begin
   insert into public.profiles (id, username, avatar_url)
-  values (new.id, new.email, 'default_avatar.png');
+  values (new.id, split_part(new.email, '@', 1), 'avatar1.png');
   return new;
 end;
 $$ language plpgsql security definer;

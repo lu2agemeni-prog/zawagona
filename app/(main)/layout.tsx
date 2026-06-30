@@ -29,6 +29,11 @@ export default async function MainLayout({
     redirect('/onboarding/mithaq');
   }
 
+  // Check if approved (skip if admin)
+  if (!profile.is_approved && !profile.is_admin) {
+    redirect('/pending-approval');
+  }
+
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
       {/* Desktop Sidebar (hidden on mobile) */}

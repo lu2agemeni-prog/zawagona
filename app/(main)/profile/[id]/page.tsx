@@ -1,8 +1,9 @@
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { Star, ShieldAlert } from 'lucide-react';
+import { Star } from 'lucide-react';
 import ProfileActions from './profile-actions';
+import ReportButton from './report-button';
 
 export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
@@ -129,9 +130,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
       </div>
       
       <div className="flex justify-end pt-4">
-        <button className="text-slate-400 hover:text-red-600 flex items-center text-sm transition">
-          <ShieldAlert className="h-4 w-4 mr-1" /> إبلاغ عن إساءة
-        </button>
+        <ReportButton reportedId={member.id} currentUserId={currentUserId} />
       </div>
     </div>
   );

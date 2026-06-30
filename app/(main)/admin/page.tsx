@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Users, CreditCard, ShieldAlert } from 'lucide-react';
+import AdminClient from './admin-client';
 
 export default async function AdminDashboard() {
   const cookieStore = await cookies();
@@ -30,9 +31,14 @@ export default async function AdminDashboard() {
     .from('profiles')
     .select('*', { count: 'exact', head: true })
     .eq('is_premium', true);
+    
+  const { count: pendingReports } = await supabase
+    .from('reports')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending');
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">لوحة تحكم الإدارة</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -62,17 +68,12 @@ export default async function AdminDashboard() {
           </div>
           <div>
             <div className="text-slate-500 text-sm">بلاغات معلقة</div>
-            <div className="text-2xl font-bold text-slate-900">0</div>
+            <div className="text-2xl font-bold text-slate-900">{pendingReports || 0}</div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-        <h2 className="text-lg font-bold text-slate-900 mb-4">طلبات العضوية والإشتراكات الأخيرة</h2>
-        <div className="text-slate-500 text-center py-8">
-          سيتم عرض الطلبات هنا قريباً
-        </div>
-      </div>
+      <AdminClient />
     </div>
   );
 }

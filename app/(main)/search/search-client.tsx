@@ -20,12 +20,48 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
 
   const handleSearch = async () => {
     setLoading(true);
+
+    // 1. Fetch blocked/ignored ids
+    const { data: authData } = await supabase.auth.getUser();
+    const currentUserId = authData.user?.id;
+    
+    let excludeIds: string[] = currentUserId ? [currentUserId] : [];
+    
+    if (currentUserId) {
+      // Exclude ignored/blocked by me
+      const { data: ignoredData } = await supabase
+        .from('interests')
+        .select('target_user_id')
+        .eq('user_id', currentUserId)
+        .in('status', ['ignore', 'block']);
+        
+      if (ignoredData) {
+        excludeIds = [...excludeIds, ...ignoredData.map(i => i.target_user_id)];
+      }
+      
+      // Exclude users who blocked me
+      const { data: blockedByData } = await supabase
+        .from('interests')
+        .select('user_id')
+        .eq('target_user_id', currentUserId)
+        .eq('status', 'block');
+        
+      if (blockedByData) {
+        excludeIds = [...excludeIds, ...blockedByData.map(i => i.user_id)];
+      }
+    }
+
     let query = supabase
       .from('profiles')
-      .select('id, username, age, residence, marital_status, avatar_url, is_premium, created_at')
+      .select('id, username, age, residence, marital_status, avatar_url, is_premium, created_at, is_approved')
       .eq('gender', targetGender)
+      .eq('is_approved', true)
       .gte('age', ageRange.min)
       .lte('age', ageRange.max);
+
+    if (excludeIds.length > 0) {
+      query = query.not('id', 'in', `(${excludeIds.join(',')})`);
+    }
 
     if (nationality) query = query.eq('nationality', nationality);
     if (residence) query = query.eq('residence', residence);
@@ -34,8 +70,6 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
     if (sortBy === 'created_at') query = query.order('created_at', { ascending: false });
     if (sortBy === 'age_asc') query = query.order('age', { ascending: true });
     if (sortBy === 'age_desc') query = query.order('age', { ascending: false });
-
-    // In a real app, you'd filter out ignored/blocked users here
 
     const { data, error } = await query.limit(20);
     
@@ -216,7 +250,7 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
                     </div>
                     <div className="text-sm text-slate-600 mt-2 space-y-1">
                       <div>{profile.age} سنة • {profile.residence}</div>
-                      <div>{profile.maritalStatus}</div>
+                      <div>{profile.marital_status}</div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                       <Link 
