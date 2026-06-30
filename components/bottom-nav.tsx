@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Search, Star, Bell } from 'lucide-react';
 
-export default function BottomNav() {
+export default function BottomNav({ unreadCount = 0 }: { unreadCount?: number }) {
   const pathname = usePathname();
 
   const tabs = [
@@ -23,11 +23,18 @@ export default function BottomNav() {
             <Link
               key={tab.name}
               href={tab.href}
-              className={`inline-flex flex-col items-center justify-center px-5 hover:bg-slate-50 group ${
+              className={`relative inline-flex flex-col items-center justify-center px-5 hover:bg-slate-50 group ${
                 isActive ? 'text-indigo-600' : 'text-slate-500'
               }`}
             >
-              <tab.icon className={`mb-1 h-6 w-6 ${isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-600'}`} />
+              <div className="relative">
+                <tab.icon className={`mb-1 h-6 w-6 ${isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-600'}`} />
+                {tab.name === 'الإشعارات' && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
               <span className="text-xs">{tab.name}</span>
             </Link>
           );

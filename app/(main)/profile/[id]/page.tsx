@@ -33,6 +33,26 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
 
   const isPremium = currentUserProfile?.is_premium || false;
 
+  // Log profile visit (Incognito for premium)
+  if (currentUserId && currentUserId !== id && !isPremium) {
+    // Check if recently visited to avoid spam
+    const { data: recentVisit } = await supabase
+      .from('profile_visits')
+      .select('id')
+      .eq('visitor_id', currentUserId)
+      .eq('visited_id', id)
+      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .limit(1)
+      .maybeSingle();
+
+    if (!recentVisit) {
+      await supabase.from('profile_visits').insert({
+        visitor_id: currentUserId,
+        visited_id: id
+      });
+    }
+  }
+
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
       {/* Profile Header */}

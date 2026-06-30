@@ -22,6 +22,7 @@ export default async function DashboardPage() {
     .from('profiles')
     .select('id, username, age, residence, avatar_url')
     .eq('gender', oppositeGender)
+    .eq('is_approved', true)
     .order('created_at', { ascending: false })
     .limit(5);
 

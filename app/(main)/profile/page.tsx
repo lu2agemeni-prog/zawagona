@@ -43,7 +43,7 @@ export default async function MyProfilePage() {
         </div>
 
         <div className="w-full md:w-auto mt-4 md:mt-0">
-          <Link href="/onboarding/profile" className="w-full md:w-auto px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md font-medium text-sm transition inline-block text-center">
+          <Link href="/profile/edit" className="w-full md:w-auto px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md font-medium text-sm transition inline-block text-center">
             تعديل البيانات
           </Link>
         </div>

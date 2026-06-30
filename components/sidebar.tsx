@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
-export default function Sidebar({ profile, mobile = false }: { profile: any, mobile?: boolean }) {
+export default function Sidebar({ profile, mobile = false, unreadCount = 0 }: { profile: any, mobile?: boolean, unreadCount?: number }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -25,6 +25,7 @@ export default function Sidebar({ profile, mobile = false }: { profile: any, mob
     { name: 'قائمة الاهتمامات', href: '/interests', icon: Heart },
     { name: 'قائمة التجاهل', href: '/ignored', icon: UserX },
     { name: 'من يهتم بي', href: '/interested-in-me', icon: Users },
+    { name: 'من زار ملفي', href: '/visitors', icon: Users },
     { name: 'قصص النجاح', href: '/success-stories', icon: Trophy },
     { name: 'الانضمام لباقة التميز', href: '/premium', icon: Star, highlight: true },
     { name: 'اتصل بنا', href: '/contact', icon: Phone },
@@ -68,6 +69,11 @@ export default function Sidebar({ profile, mobile = false }: { profile: any, mob
                 }`}
               />
               {item.name}
+              {item.name === 'الإشعارات' && unreadCount > 0 && (
+                <span className="mr-auto inline-block rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}

@@ -59,6 +59,9 @@ alter table public.profiles enable row level security;
 create policy "Public profiles are viewable by everyone." on public.profiles for select using (true);
 create policy "Users can insert their own profile." on public.profiles for insert with check (auth.uid() = id);
 create policy "Users can update own profile." on public.profiles for update using (auth.uid() = id);
+create policy "Admins can update profiles." on public.profiles for update using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
 
 -- INTERESTS TABLE (Likes, Ignores, Blocks)
 create table public.interests (
@@ -87,9 +90,11 @@ create table public.messages (
 
 alter table public.messages enable row level security;
 create policy "Users can view their own messages" on public.messages for select using (auth.uid() = sender_id or auth.uid() = receiver_id);
-create policy "Premium users can insert messages" on public.messages for insert with check (
-  auth.uid() = sender_id and 
-  exists (select 1 from public.profiles where id = auth.uid() and is_premium = true)
+create policy "Users can insert messages" on public.messages for insert with check (
+  auth.uid() = sender_id and (
+    exists (select 1 from public.profiles where id = auth.uid() and is_premium = true) or
+    exists (select 1 from public.messages m where m.sender_id = receiver_id and m.receiver_id = auth.uid())
+  )
 );
 
 -- NOTIFICATIONS TABLE
@@ -122,6 +127,22 @@ create policy "Users can insert reports" on public.reports for insert with check
 create policy "Admins can view reports" on public.reports for select using (
   exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
 );
+create policy "Admins can update reports" on public.reports for update using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
+
+-- PROFILE VISITS TABLE
+create table public.profile_visits (
+  id uuid default uuid_generate_v4() primary key,
+  visitor_id uuid references public.profiles(id) on delete cascade not null,
+  visited_id uuid references public.profiles(id) on delete cascade not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.profile_visits enable row level security;
+create policy "Users can insert visits" on public.profile_visits for insert with check (auth.uid() = visitor_id);
+create policy "Users can view visits to their profile" on public.profile_visits for select using (auth.uid() = visited_id);
+create policy "Users can view their own visits" on public.profile_visits for select using (auth.uid() = visitor_id);
 
 -- PREMIUM REQUESTS TABLE
 create table public.premium_requests (
@@ -136,6 +157,9 @@ alter table public.premium_requests enable row level security;
 create policy "Users can insert premium requests" on public.premium_requests for insert with check (auth.uid() = user_id);
 create policy "Users can view own premium requests" on public.premium_requests for select using (auth.uid() = user_id);
 create policy "Admins can view premium requests" on public.premium_requests for select using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
+create policy "Admins can update premium requests" on public.premium_requests for update using (
   exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
 );
 

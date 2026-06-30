@@ -17,8 +17,12 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
   const [residence, setResidence] = useState('');
   const [maritalStatus, setMaritalStatus] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
+  
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const itemsPerPage = 20;
 
-  const handleSearch = async () => {
+  const handleSearch = async (pageNum = 1) => {
     setLoading(true);
 
     // 1. Fetch blocked/ignored ids
@@ -53,7 +57,7 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
 
     let query = supabase
       .from('profiles')
-      .select('id, username, age, residence, marital_status, avatar_url, is_premium, created_at, is_approved')
+      .select('id, username, age, residence, marital_status, avatar_url, is_premium, created_at, is_approved', { count: 'exact' })
       .eq('gender', targetGender)
       .eq('is_approved', true)
       .gte('age', ageRange.min)
@@ -71,14 +75,29 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
     if (sortBy === 'age_asc') query = query.order('age', { ascending: true });
     if (sortBy === 'age_desc') query = query.order('age', { ascending: false });
 
-    const { data, error } = await query.limit(20);
+    const from = (pageNum - 1) * itemsPerPage;
+    const to = from + itemsPerPage - 1;
+
+    const { data, count, error } = await query.range(from, to);
     
-    if (data) setResults(data);
+    if (data) {
+      if (pageNum === 1) {
+        setResults(data);
+      } else {
+        setResults(prev => [...prev, ...data]);
+      }
+      setHasMore(count !== null ? from + data.length < count : false);
+      setPage(pageNum);
+    }
     setLoading(false);
   };
 
+  const handleLoadMore = () => {
+    handleSearch(page + 1);
+  };
+
   useEffect(() => {
-    handleSearch();
+    handleSearch(1);
   }, []);
 
   const selectClass = "block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white border";
@@ -211,7 +230,7 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
             </div>
 
             <button
-              onClick={handleSearch}
+              onClick={() => handleSearch(1)}
               className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white font-medium text-sm hover:bg-indigo-700 transition"
             >
               بحث
@@ -264,12 +283,24 @@ export default function SearchClient({ targetGender, isPremium }: { targetGender
                 </div>
               ))}
               
-              {results.length === 0 && (
+              {results.length === 0 && !loading && (
                 <div className="col-span-full py-12 text-center text-slate-500 bg-white rounded-xl border border-slate-100">
                   لا توجد نتائج تطابق بحثك. جرب تغيير فلاتر البحث.
                 </div>
               )}
             </div>
+            
+            {hasMore && results.length > 0 && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loading}
+                  className="px-6 py-2 bg-white border border-indigo-200 text-indigo-700 rounded-full font-medium hover:bg-indigo-50 transition shadow-sm disabled:opacity-50"
+                >
+                  {loading ? 'جاري التحميل...' : 'عرض المزيد'}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

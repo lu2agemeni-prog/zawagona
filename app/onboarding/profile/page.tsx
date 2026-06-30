@@ -26,10 +26,18 @@ export default function ProfileSetupPage() {
   });
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const g = sessionStorage.getItem('temp_gender') as 'male' | 'female';
-      if (g) setGender(g);
+    async function fetchGender() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.from('profiles').select('gender').eq('id', user.id).single();
+        if (data?.gender) {
+          setGender(data.gender);
+        } else {
+          router.push('/onboarding/gender');
+        }
+      }
     }
+    fetchGender();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -559,21 +567,33 @@ export default function ProfileSetupPage() {
               <div>
                 <h2 className="text-xl font-semibold text-indigo-700 border-b border-indigo-100 pb-2 mb-4 mt-8">الصورة الرمزية (أفاتار)</h2>
                 <div className="flex gap-4">
-                  <label className="cursor-pointer relative group">
-                    <input type="radio" name="avatar_url" value="avatar1.png" checked={formData.avatar_url === 'avatar1.png'} onChange={handleChange} className="peer sr-only" />
-                    <div className="w-16 h-16 rounded-full bg-indigo-50 border-2 border-transparent peer-checked:border-indigo-600 peer-checked:bg-indigo-100 flex items-center justify-center text-3xl transition-all group-hover:scale-105">👤</div>
-                    {formData.avatar_url === 'avatar1.png' && <div className="absolute -top-1 -right-1 bg-indigo-600 rounded-full text-white p-0.5"><CheckCircle2 className="w-4 h-4" /></div>}
-                  </label>
-                  <label className="cursor-pointer relative group">
-                    <input type="radio" name="avatar_url" value="avatar2.png" checked={formData.avatar_url === 'avatar2.png'} onChange={handleChange} className="peer sr-only" />
-                    <div className="w-16 h-16 rounded-full bg-pink-50 border-2 border-transparent peer-checked:border-pink-600 peer-checked:bg-pink-100 flex items-center justify-center text-3xl transition-all group-hover:scale-105">👩</div>
-                    {formData.avatar_url === 'avatar2.png' && <div className="absolute -top-1 -right-1 bg-pink-600 rounded-full text-white p-0.5"><CheckCircle2 className="w-4 h-4" /></div>}
-                  </label>
-                  <label className="cursor-pointer relative group">
-                    <input type="radio" name="avatar_url" value="avatar3.png" checked={formData.avatar_url === 'avatar3.png'} onChange={handleChange} className="peer sr-only" />
-                    <div className="w-16 h-16 rounded-full bg-green-50 border-2 border-transparent peer-checked:border-green-600 peer-checked:bg-green-100 flex items-center justify-center text-3xl transition-all group-hover:scale-105">👨</div>
-                    {formData.avatar_url === 'avatar3.png' && <div className="absolute -top-1 -right-1 bg-green-600 rounded-full text-white p-0.5"><CheckCircle2 className="w-4 h-4" /></div>}
-                  </label>
+                  {gender === 'male' ? (
+                    <>
+                      <label className="cursor-pointer relative group">
+                        <input type="radio" name="avatar_url" value="avatar1.png" checked={formData.avatar_url === 'avatar1.png'} onChange={handleChange} className="peer sr-only" />
+                        <div className="w-16 h-16 rounded-full bg-indigo-50 border-2 border-transparent peer-checked:border-indigo-600 peer-checked:bg-indigo-100 flex items-center justify-center text-3xl transition-all group-hover:scale-105">👨</div>
+                        {formData.avatar_url === 'avatar1.png' && <div className="absolute -top-1 -right-1 bg-indigo-600 rounded-full text-white p-0.5"><CheckCircle2 className="w-4 h-4" /></div>}
+                      </label>
+                      <label className="cursor-pointer relative group">
+                        <input type="radio" name="avatar_url" value="avatar_m2.png" checked={formData.avatar_url === 'avatar_m2.png'} onChange={handleChange} className="peer sr-only" />
+                        <div className="w-16 h-16 rounded-full bg-indigo-50 border-2 border-transparent peer-checked:border-indigo-600 peer-checked:bg-indigo-100 flex items-center justify-center text-3xl transition-all group-hover:scale-105">🧔</div>
+                        {formData.avatar_url === 'avatar_m2.png' && <div className="absolute -top-1 -right-1 bg-indigo-600 rounded-full text-white p-0.5"><CheckCircle2 className="w-4 h-4" /></div>}
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <label className="cursor-pointer relative group">
+                        <input type="radio" name="avatar_url" value="avatar2.png" checked={formData.avatar_url === 'avatar2.png'} onChange={handleChange} className="peer sr-only" />
+                        <div className="w-16 h-16 rounded-full bg-pink-50 border-2 border-transparent peer-checked:border-pink-600 peer-checked:bg-pink-100 flex items-center justify-center text-3xl transition-all group-hover:scale-105">👩</div>
+                        {formData.avatar_url === 'avatar2.png' && <div className="absolute -top-1 -right-1 bg-pink-600 rounded-full text-white p-0.5"><CheckCircle2 className="w-4 h-4" /></div>}
+                      </label>
+                      <label className="cursor-pointer relative group">
+                        <input type="radio" name="avatar_url" value="avatar_f2.png" checked={formData.avatar_url === 'avatar_f2.png'} onChange={handleChange} className="peer sr-only" />
+                        <div className="w-16 h-16 rounded-full bg-pink-50 border-2 border-transparent peer-checked:border-pink-600 peer-checked:bg-pink-100 flex items-center justify-center text-3xl transition-all group-hover:scale-105">🧕</div>
+                        {formData.avatar_url === 'avatar_f2.png' && <div className="absolute -top-1 -right-1 bg-pink-600 rounded-full text-white p-0.5"><CheckCircle2 className="w-4 h-4" /></div>}
+                      </label>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
