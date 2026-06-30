@@ -55,8 +55,15 @@ export default function AdminClient() {
     setPendingUsers(prev => prev.filter(u => u.id !== id));
   };
 
-  const handleApprovePremium = async (id: string, userId: string) => {
-    await supabase.rpc('admin_approve_premium', { request_id: id, target_user_id: userId });
+  const handleApprovePremium = async (id: string, userId: string, packageName: string) => {
+    let daysToAdd = 30; // default
+    if (packageName === 'أسبوعي') daysToAdd = 7;
+    if (packageName === 'شهري') daysToAdd = 30;
+    if (packageName === '3 شهور') daysToAdd = 90;
+    if (packageName === '6 أشهر') daysToAdd = 180;
+    if (packageName === 'سنوي') daysToAdd = 365;
+
+    await supabase.rpc('admin_approve_premium', { request_id: id, target_user_id: userId, days_to_add: daysToAdd });
     setPremiumRequests(prev => prev.filter(p => p.id !== id));
   };
 
@@ -111,7 +118,7 @@ export default function AdminClient() {
                   <div className="font-bold">{req.profiles?.username || 'عضو'}</div>
                   <div className="text-sm text-amber-600 font-medium">الباقة: {req.package_name}</div>
                 </div>
-                <button onClick={() => handleApprovePremium(req.id, req.user_id)} className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 text-sm font-bold flex items-center">
+                <button onClick={() => handleApprovePremium(req.id, req.user_id, req.package_name)} className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 text-sm font-bold flex items-center">
                   <Check className="w-4 h-4 mr-1" /> تفعيل الباقة
                 </button>
               </div>

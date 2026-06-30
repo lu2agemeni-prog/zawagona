@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Star, CheckCircle, Smartphone, CreditCard, Shield } from 'lucide-react';
 
-export default function PremiumClient({ userId }: { userId: string }) {
+export default function PremiumClient({ userId, isPremium, premiumUntil }: { userId: string, isPremium?: boolean, premiumUntil?: string }) {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -36,6 +36,36 @@ export default function PremiumClient({ userId }: { userId: string }) {
       setSuccess(true);
     }
   };
+
+  if (isPremium) {
+    const isExpired = premiumUntil ? new Date(premiumUntil) < new Date() : false;
+    const formattedDate = premiumUntil ? new Date(premiumUntil).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : 'غير محدد';
+    
+    if (!isExpired) {
+      return (
+        <div className="p-4 md:p-8 max-w-2xl mx-auto text-center">
+          <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center">
+            <div className="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mb-6">
+              <Star className="h-10 w-10 fill-current" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">أنت عضو في باقة التميز 👑</h2>
+            <p className="text-slate-600 mb-2">
+              تستمتع حالياً بجميع مزايا العضوية المميزة.
+            </p>
+            <div className="text-indigo-700 font-bold bg-indigo-50 px-4 py-2 rounded-lg mb-8">
+              صالح حتى: {formattedDate}
+            </div>
+            <button 
+              onClick={() => window.location.href = '/dashboard'}
+              className="bg-indigo-600 text-white px-8 py-3 rounded-md font-medium hover:bg-indigo-700 transition"
+            >
+              العودة للرئيسية
+            </button>
+          </div>
+        </div>
+      );
+    }
+  }
 
   if (success) {
     return (

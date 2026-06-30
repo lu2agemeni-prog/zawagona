@@ -13,5 +13,15 @@ export default async function PremiumPage() {
     redirect('/login');
   }
 
-  return <PremiumClient userId={session.user.id} />;
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_premium, premium_until')
+    .eq('id', session.user.id)
+    .single();
+
+  return <PremiumClient 
+    userId={session.user.id} 
+    isPremium={profile?.is_premium || false} 
+    premiumUntil={profile?.premium_until} 
+  />;
 }
