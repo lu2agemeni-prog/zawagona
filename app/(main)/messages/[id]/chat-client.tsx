@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { User, Image as ImageIcon, Loader2, Send } from '@/components/my-icons';
 
 export default function ChatClient({ 
   currentUserId, 
@@ -99,50 +98,38 @@ export default function ChatClient({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen animate-in fade-in duration-500">
-      <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center shadow-sm z-10 relative">
-        <div className="w-12 h-12 bg-surface-50 border border-slate-100 rounded-full flex items-center justify-center text-xl ml-4 overflow-hidden">
-          {targetUser?.avatar_url?.includes('avatar') ? (
-            <User className="w-6 h-6 text-slate-400" />
-          ) : (
-            <ImageIcon className="w-6 h-6 text-slate-400" />
-          )}
+    <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen">
+      <div className="bg-white border-b px-6 py-4 flex items-center shadow-sm">
+        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-xl ml-3">
+          {targetUser?.avatar_url?.includes('avatar') ? '👤' : '📸'}
         </div>
-        <div>
-           <div className="font-bold text-slate-900 text-lg">{targetUser?.username || 'عضو'}</div>
-           <div className="text-xs font-medium text-slate-500 flex items-center gap-1.5 mt-0.5">
-             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-             متصل الآن
-           </div>
-        </div>
+        <div className="font-bold text-slate-900">{targetUser?.username || 'عضو'}</div>
       </div>
       
-      <div className="flex-1 bg-stone-50 p-4 md:p-6 overflow-y-auto flex flex-col relative">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-[0.03] pointer-events-none"></div>
-        <div className="text-center text-sm font-medium text-slate-500 my-6 bg-slate-100/50 backdrop-blur-sm self-center px-4 py-1.5 rounded-full border border-slate-200">
+      <div className="flex-1 bg-slate-50 p-4 md:p-6 overflow-y-auto flex flex-col">
+        <div className="text-center text-sm text-slate-500 my-4">
           بداية المحادثة مع {targetUser?.username || 'العضو'}
         </div>
         
         {loading ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-primary-600">
-            <Loader2 className="animate-spin h-10 w-10 mb-4" />
-            <span className="font-medium">جاري تحميل الرسائل...</span>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col gap-4 relative z-10">
+          <div className="flex-1 flex flex-col gap-3">
             {messages.map((msg) => {
               const isMine = msg.sender_id === currentUserId;
               return (
-                <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+                <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                   <div 
-                    className={`max-w-[75%] px-5 py-3 rounded-2xl shadow-sm ${
+                    className={`max-w-[75%] px-4 py-2 rounded-2xl ${
                       isMine 
-                        ? 'bg-primary-600 text-white rounded-br-sm' 
-                        : 'bg-white border border-slate-100 text-slate-900 rounded-bl-sm'
+                        ? 'bg-indigo-600 text-white rounded-br-sm' 
+                        : 'bg-white border border-slate-200 text-slate-900 rounded-bl-sm'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap break-words text-sm font-medium leading-relaxed">{msg.content}</p>
-                    <span className={`text-[10px] block mt-1.5 font-bold ${isMine ? 'text-primary-200 text-left' : 'text-slate-400 text-right'}`}>
+                    <p className="whitespace-pre-wrap break-words text-sm">{msg.content}</p>
+                    <span className={`text-[10px] block mt-1 ${isMine ? 'text-indigo-200 text-left' : 'text-slate-400 text-right'}`}>
                       {new Date(msg.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
@@ -154,21 +141,21 @@ export default function ChatClient({
         )}
       </div>
       
-      <div className="bg-white border-t border-slate-100 p-4 relative z-10">
-        <form onSubmit={handleSend} className="flex gap-3 max-w-4xl mx-auto relative">
+      <div className="bg-white border-t p-4">
+        <form onSubmit={handleSend} className="flex gap-2 max-w-4xl mx-auto">
           <input 
             type="text" 
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="اكتب رسالتك هنا..." 
-            className="flex-1 border border-slate-200 bg-surface-50 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors shadow-sm"
+            className="flex-1 border border-slate-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
           />
           <button 
             type="submit" 
             disabled={!newMessage.trim()}
-            className="bg-primary-600 text-white rounded-2xl w-14 h-14 flex items-center justify-center font-bold hover:bg-primary-700 hover:shadow-md disabled:opacity-50 transition-all active:scale-[0.98]"
+            className="bg-indigo-600 text-white rounded-full px-6 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
           >
-            <Send className="h-5 w-5 -ml-1" />
+            إرسال
           </button>
         </form>
       </div>

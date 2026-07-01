@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Check, X, ShieldAlert, Star } from '@/components/my-icons';
+import { Check, X, ShieldAlert, Star } from 'lucide-react';
 
 export default function AdminClient() {
   const [pendingUsers, setPendingUsers] = useState<any[]>([]);

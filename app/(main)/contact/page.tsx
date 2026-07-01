@@ -1,4 +1,4 @@
-import { Phone, Mail, MapPin } from '@/components/my-icons';
+import { Phone, Mail, MapPin } from 'lucide-react';
 
 export default function ContactPage() {
   return (
