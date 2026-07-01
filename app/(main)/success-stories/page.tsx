@@ -1,4 +1,4 @@
-import { Trophy } from '@/components/icons';
+import { Trophy } from '@/components/my-icons';
 
 export default function SuccessStoriesPage() {
   const stories = [

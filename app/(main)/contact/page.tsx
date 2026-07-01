@@ -1,4 +1,4 @@
-import { Phone, Mail, MapPin } from '@/components/icons';
+import { Phone, Mail, MapPin } from '@/components/my-icons';
 
 export default function ContactPage() {
   return (

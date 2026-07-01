@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Users, User, History, ImageIcon } from '@/components/icons';
+import { Users, User, History, Image as ImageIcon } from '@/components/my-icons';
 
 export default async function VisitorsPage() {
   const cookieStore = await cookies();
@@ -53,7 +53,7 @@ export default async function VisitorsPage() {
       {(!visits || visits.length === 0) ? (
         <div className="col-span-full py-20 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-dashed border-slate-200 shadow-sm">
             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-5">
-               <History className="w-10 h-10 text-slate-400" />
+               {/* <History className="w-10 h-10 text-slate-400" /> */}
             </div>
             <h4 className="text-xl font-bold text-slate-800 mb-2">لا يوجد زيارات حالياً</h4>
             <p className="text-sm font-medium text-slate-500 max-w-md">لم يقم أحد بزيارة ملفك الشخصي مؤخراً.</p>

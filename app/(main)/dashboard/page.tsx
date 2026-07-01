@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { Search, Star, Users, ArrowLeft, User, Heart, ImageIcon } from '@/components/icons';
+import { Search, Star, Users, ArrowLeft, User, Heart, Image as ImageIcon } from '@/components/my-icons';
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();

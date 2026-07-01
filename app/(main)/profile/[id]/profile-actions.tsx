@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Heart, MessageCircle, Ban, Bookmark, EyeOff } from '@/components/icons';
+import { Heart, MessageCircle, Ban, Bookmark, EyeOff } from '@/components/my-icons';
 import { useRouter } from 'next/navigation';
 
 export default function ProfileActions({ 

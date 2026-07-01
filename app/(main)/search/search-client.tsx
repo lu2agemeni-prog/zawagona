@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
-import { Search, Filter, ArrowLeft, Heart, UserX, UserMinus, Star, User, Image as ImageIcon, SearchX, Loader2 } from '@/components/icons';
+import { Search, Filter, ArrowLeft, Heart, UserX, UserMinus, Star, User, Image as ImageIcon, SearchX, Loader2 } from '@/components/my-icons';
 
 export default function SearchClient({ targetGender, isPremium }: { targetGender: string, isPremium: boolean }) {
   const supabase = createClient();

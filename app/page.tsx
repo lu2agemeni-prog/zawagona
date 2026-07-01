@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, ShieldCheck, Users, Search, ArrowLeft } from '@/components/icons';
+import { Heart, ShieldCheck, Users, Search, ArrowLeft } from '@/components/my-icons';
 
 export default async function Home() {
   const cookieStore = await cookies();

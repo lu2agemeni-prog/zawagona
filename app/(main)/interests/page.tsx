@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Heart } from '@/components/icons';
+import { Heart } from '@/components/my-icons';
 
 export default async function InterestsPage() {
   const cookieStore = await cookies();

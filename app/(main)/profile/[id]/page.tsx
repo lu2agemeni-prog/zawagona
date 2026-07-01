@@ -1,9 +1,11 @@
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { Star, User, Image as ImageIcon, Info, Heart, Shield, Activity, GraduationCap } from '@/components/icons';
+import { Star, User, Image as ImageIcon, Info, Heart, Shield, Activity, GraduationCap } from '@/components/my-icons';
 import ProfileActions from './profile-actions';
 import ReportButton from './report-button';
+
+export const dynamic = 'force-dynamic';
 
 export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();

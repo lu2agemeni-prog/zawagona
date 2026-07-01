@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { PartyPopper, CheckCircle2, ChevronRight, ChevronLeft } from '@/components/icons';
+import { PartyPopper, CheckCircle2, ChevronRight, ChevronLeft } from '@/components/my-icons';
 
 export default function ProfileSetupPage() {
   const router = useRouter();

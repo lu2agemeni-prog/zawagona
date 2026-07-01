@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { User, Image as ImageIcon, Loader2, Send } from '@/components/icons';
+import { User, Image as ImageIcon, Loader2, Send } from '@/components/my-icons';
 
 export default function ChatClient({ 
   currentUserId, 
