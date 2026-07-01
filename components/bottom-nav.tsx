@@ -18,7 +18,7 @@ export default function BottomNav({ unreadCount = 0 }: { unreadCount?: number })
     <div className="fixed bottom-0 left-0 z-50 h-16 w-full border-t border-slate-200 bg-white/90 backdrop-blur-md">
       <div className="mx-auto grid h-full max-w-lg grid-cols-4 font-medium">
         {tabs.map((tab) => {
-          const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
+          const isActive = pathname === tab.href || (pathname && pathname.startsWith(tab.href + '/'));
           return (
             <Link
               key={tab.name}
