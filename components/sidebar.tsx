@@ -29,7 +29,7 @@ export default function Sidebar({ profile, mobile = false, unreadCount = 0 }: { 
     { name: 'قصص النجاح', href: '/success-stories', icon: Trophy },
     { name: 'الانضمام لباقة التميز', href: '/premium', icon: Star, highlight: true },
     { name: 'اتصل بنا', href: '/contact', icon: Phone },
-    { name: 'مشاركة التطبيق', href: '#', icon: Share2 },
+    { name: 'مشاركة التطبيق', href: '/share', icon: Share2 },
   ];
 
   const sidebarContentJsx = (
