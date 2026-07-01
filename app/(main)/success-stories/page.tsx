@@ -1,4 +1,4 @@
-import { Trophy } from 'lucide-react';
+import { Trophy } from '@/components/my-icons';
 
 export default function SuccessStoriesPage() {
   const stories = [

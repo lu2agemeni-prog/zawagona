@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Star, Bell, User, Heart, UserX, Users, Trophy, Phone, Share2, LogOut, Menu } from 'lucide-react';
+import { Home, Search, Star, Bell, User, Heart, UserX, Users, Trophy, Phone, Share2, LogOut, Menu } from '@/components/my-icons';
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';

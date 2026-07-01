@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Star, Bell } from 'lucide-react';
+import { Home, Search, Star, Bell } from '@/components/my-icons';
 
 export default function BottomNav({ unreadCount = 0 }: { unreadCount?: number }) {
   const pathname = usePathname();
