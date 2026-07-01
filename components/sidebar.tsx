@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Star, Bell, User, Heart, UserX, Users, Trophy, Phone, Share2, LogOut, Menu } from 'lucide-react';
+import { Home, Search, Star, Bell, User, Heart, UserX, Users, Trophy, Phone, Share2, LogOut, Menu } from '@/components/my-icons';
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -32,7 +32,7 @@ export default function Sidebar({ profile, mobile = false, unreadCount = 0 }: { 
     { name: 'مشاركة التطبيق', href: '#', icon: Share2 },
   ];
 
-  const SidebarContent = () => (
+  const sidebarContentJsx = (
     <div className="flex h-full flex-col overflow-y-auto bg-white py-6 shadow-xl md:shadow-[1px_0_15px_-5px_rgba(0,0,0,0.1)] md:border-l border-slate-100">
       <div className="px-6 mb-8">
         <h2 className="text-2xl font-black text-primary-700 tracking-tight">مـودة</h2>
@@ -105,7 +105,7 @@ export default function Sidebar({ profile, mobile = false, unreadCount = 0 }: { 
           <div className="fixed inset-0 z-[100] flex">
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsOpen(false)}></div>
             <div className="relative flex w-full max-w-[280px] flex-1 flex-col bg-white mr-auto right-0 shadow-2xl animate-in slide-in-from-right duration-300">
-              <SidebarContent />
+              {sidebarContentJsx}
             </div>
           </div>
         )}
@@ -113,5 +113,5 @@ export default function Sidebar({ profile, mobile = false, unreadCount = 0 }: { 
     );
   }
 
-  return <SidebarContent />;
+  return sidebarContentJsx;
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { PartyPopper, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { PartyPopper, CheckCircle2, ChevronRight, ChevronLeft } from '@/components/my-icons';
 
 export default function ProfileSetupPage() {
   const router = useRouter();
@@ -38,7 +38,7 @@ export default function ProfileSetupPage() {
       }
     }
     fetchGender();
-  }, []);
+  }, [router, supabase]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));

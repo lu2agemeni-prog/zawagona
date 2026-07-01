@@ -1,10 +1,12 @@
 import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, ShieldCheck, Users, Search, ArrowLeft } from 'lucide-react';
+import { Heart, ShieldCheck, Users, Search, ArrowLeft } from '@/components/my-icons';
 
 export default async function Home() {
-  const supabase = await createClient();
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) {
