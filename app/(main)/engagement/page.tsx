@@ -31,7 +31,7 @@ export default function EngagementPage() {
 
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-3xl p-6 mb-8">
         <p className="text-amber-800 dark:text-amber-200 text-sm leading-relaxed text-center">
-          "بمجرد تأكيد الخطبة، يُنصح بتجميد الحساب للتركيز على هذه المرحلة الهامة. يمكنك دائماً إلغاء التجميد أو حذف الحساب نهائياً لاحقاً."
+          &ldquo;بمجرد تأكيد الخطبة، يُنصح بتجميد الحساب للتركيز على هذه المرحلة الهامة. يمكنك دائماً إلغاء التجميد أو حذف الحساب نهائياً لاحقاً.&rdquo;
         </p>
       </div>
 

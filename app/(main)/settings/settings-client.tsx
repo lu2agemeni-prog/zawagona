@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Loader2, Save, Image as ImageIcon, Shield, User, Sliders } from 'lucide-react';
 import { PrivateImage } from '@/components/private-image';
+import { MARITAL_STATUS_OPTIONS } from '@/lib/constants';
 
 export default function SettingsClient({ profile, initialPhotos }: { profile: any, initialPhotos: any[] }) {
   const supabase = createClient();
@@ -203,9 +204,9 @@ export default function SettingsClient({ profile, initialPhotos }: { profile: an
                       className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                     >
                       <option value="">لا يهم</option>
-                      <option value="عازب/ة">عازب/ة</option>
-                      <option value="مطلق/ة">مطلق/ة</option>
-                      <option value="أرمل/ة">أرمل/ة</option>
+                      {MARITAL_STATUS_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-2">

@@ -97,7 +97,7 @@ export default function PhotoRequestsClient({
                   </div>
                   <div className="flex-1 text-center sm:text-right">
                     <Link href={`/profile/${request.requester.id}`} className="font-bold text-slate-900 dark:text-slate-100 hover:text-indigo-600 transition-colors">
-                      {request.requester.full_name || request.requester.username}
+                      {request.requester.display_name || request.requester.username || 'عضو'}
                     </Link>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                       طلب رؤية صورتك الشخصية
@@ -158,7 +158,7 @@ export default function PhotoRequestsClient({
                   </div>
                   <div className="flex-1 text-center sm:text-right">
                     <Link href={`/profile/${request.target.id}`} className="font-bold text-slate-900 dark:text-slate-100 hover:text-indigo-600 transition-colors">
-                      {request.target.full_name || request.target.username}
+                      {request.target.display_name || request.target.username || 'عضو'}
                     </Link>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                       {request.status === 'pending' && 'في انتظار الموافقة على طلبك'}

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Filter, Heart, UserX, Star, Save, BellRing } from '@/components/my-icons';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
+import { MARITAL_STATUS_OPTIONS, RELIGIOUS_COMMITMENT_OPTIONS } from '@/lib/constants';
 
 export default function SearchClient({ initialProfiles, currentUserId, currentUserProfile }: { initialProfiles: any[], currentUserId: string, currentUserProfile: any }) {
   const supabase = createClient();
@@ -58,7 +59,7 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
 
     if (currentUserProfile) {
       if (profile.religious_commitment === currentUserProfile.religious_commitment) score += 20;
-      if (profile.educational_level === currentUserProfile.educational_level) score += 10;
+      if (profile.qualification === currentUserProfile.qualification) score += 10;
       if (profile.marital_status === currentUserProfile.marital_status) score += 10;
     }
     return Math.min(100, score);
@@ -82,7 +83,7 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
       query = query.eq('religious_commitment', filters.religious_commitment);
     }
     if (searchQuery) {
-      query = query.or(`full_name.ilike.%${searchQuery}%,about_me.ilike.%${searchQuery}%`);
+      query = query.or(`display_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%,about_me.ilike.%${searchQuery}%`);
     }
 
     const { data } = await query.range(page * 20, (page + 1) * 20 - 1);
@@ -137,7 +138,7 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
         query = query.eq('religious_commitment', filters.religious_commitment);
       }
       if (searchQuery) {
-        query = query.or(`full_name.ilike.%${searchQuery}%,about_me.ilike.%${searchQuery}%`);
+        query = query.or(`display_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%,about_me.ilike.%${searchQuery}%`);
       }
 
       const { data } = await query.limit(20);
@@ -222,10 +223,9 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
                 className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
               >
                 <option value="">الكل</option>
-                <option value="عازب/عزباء">عازب/عزباء</option>
-                <option value="متزوج/ة">متزوج/ة</option>
-                <option value="مطلق/ة">مطلق/ة</option>
-                <option value="أرمل/ة">أرمل/ة</option>
+                {MARITAL_STATUS_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
               </select>
             </div>
             <div>
@@ -236,9 +236,9 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
                 className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
               >
                 <option value="">الكل</option>
-                <option value="ملتزم/ة">ملتزم/ة</option>
-                <option value="متوسط/ة">متوسط/ة</option>
-                <option value="غير ملتزم/ة">غير ملتزم/ة</option>
+                {RELIGIOUS_COMMITMENT_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -269,12 +269,12 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
 
               <div className="h-48 bg-slate-200 relative overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100 group-hover:scale-105 transition-transform duration-500">
-                  <span className="text-4xl">{profile.full_name?.charAt(0) || '?'}</span>
+                  <span className="text-4xl">{(profile.display_name || profile.username)?.charAt(0) || '?'}</span>
                 </div>
               </div>
               <div className="p-4 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-bold text-slate-900 line-clamp-1">{profile.full_name}</h3>
+                  <h3 className="text-xl font-bold text-slate-900 line-clamp-1">{profile.display_name || profile.username || 'عضو'}</h3>
                   {profile.is_premium && (
                     <div className="flex gap-1 text-amber-500">
                       <Star className="w-5 h-5 fill-amber-500" />
