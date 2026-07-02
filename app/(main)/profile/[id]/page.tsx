@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
 import ProfileActions from './profile-actions';
-import { ArrowLeft, Star } from '@/components/my-icons';
+import { ArrowLeft, Star, ShieldCheck } from '@/components/my-icons';
 import Link from 'next/link';
 import { PrivateImage } from '@/components/private-image';
 
@@ -56,6 +56,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     }
   }
 
+  // Fetch photos
+  const { data: userPhotos } = await supabase
+    .from('user_photos')
+    .select('*')
+    .eq('user_id', profile.id)
+    .order('created_at', { ascending: false });
+
   const defaultAvatarUrl = profile.gender === 'female' ? '/avatars/avatar_f2.png' : '/avatars/avatar1.png';
   const avatarUrl = profile.avatar_url ? (profile.avatar_url.startsWith('http') ? profile.avatar_url : `/${profile.avatar_url}`) : defaultAvatarUrl;
 
@@ -103,11 +110,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-              {profile.full_name}
+              {profile.display_name || profile.username || 'عضو'}
+              {profile.is_verified && <ShieldCheck className="w-6 h-6 text-emerald-500" />}
               {profile.is_premium && <Star className="w-6 h-6 text-amber-500 fill-amber-500" />}
             </h1>
             <p className="text-slate-500">
-              {profile.gender === 'male' ? 'ذكر' : 'أنثى'} • العمر غير متاح
+              {profile.gender === 'male' ? 'ذكر' : 'أنثى'} • العمر: {profile.age || 'غير متاح'} • {profile.residence || 'البلد غير محدد'}
+              {profile.last_active && (
+                <span className="mr-2 text-xs font-medium px-2 py-1 bg-slate-100 rounded-full">
+                  نشط {new Date(profile.last_active).toLocaleDateString('ar-EG')}
+                </span>
+              )}
             </p>
           </div>
 
@@ -118,6 +131,25 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                 {profile.about_me || 'لم يقم هذا العضو بكتابة نبذة شخصية بعد.'}
               </div>
             </section>
+
+            {userPhotos && userPhotos.length > 0 && (
+              <section>
+                <h2 className="text-xl font-bold text-slate-900 mb-4">معرض الصور</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {userPhotos.map((photo: any) => (
+                    <div key={photo.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-100">
+                      <PrivateImage
+                        src={photo.url}
+                        alt="صورة شخصية"
+                        fill
+                        isPrivate={photo.is_private}
+                        hasAccess={hasPhotoAccess}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         </div>
       </div>

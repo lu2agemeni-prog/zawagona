@@ -4,7 +4,7 @@ import { Heart, MessageCircle, Ban, Bookmark, Eye } from '@/components/my-icons'
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
 
 export default function ProfileActions({ 
   profileId, 
@@ -18,6 +18,7 @@ export default function ProfileActions({
   const [isLiked, setIsLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isPhotoLoading, setIsPhotoLoading] = useState(false);
+  const [isMessageLoading, setIsMessageLoading] = useState(false);
   const [photoStatus, setPhotoStatus] = useState<string | null>(initialPhotoAccessStatus || null);
   const supabase = createClient();
   const router = useRouter();
@@ -77,6 +78,40 @@ export default function ProfileActions({
     }
   };
 
+  const handleMessage = async () => {
+    setIsMessageLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`and(participant1_id.eq.${user.id},participant2_id.eq.${profileId}),and(participant1_id.eq.${profileId},participant2_id.eq.${user.id})`)
+        .maybeSingle();
+      
+      if (conv) {
+        router.push(`/messages?id=${conv.id}`);
+      } else {
+        const { data: newConv } = await supabase
+          .from('conversations')
+          .insert({ participant1_id: user.id, participant2_id: profileId })
+          .select('id')
+          .single();
+        if (newConv) {
+           router.push(`/messages?id=${newConv.id}`);
+        } else {
+          router.push('/messages');
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      router.push('/messages');
+    } finally {
+      setIsMessageLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
       <button 
@@ -102,14 +137,18 @@ export default function ProfileActions({
               : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm shadow-indigo-200'
           }`}
         >
-          <Eye className={`w-4 h-4 ${photoStatus === 'pending' ? 'text-indigo-600' : 'text-white'}`} />
+          {isPhotoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className={`w-4 h-4 ${photoStatus === 'pending' ? 'text-indigo-600' : 'text-white'}`} />}
           {photoStatus === 'pending' ? 'إلغاء طلب الصور' : 'طلب رؤية الصور'}
         </button>
       )}
       
-      <Link href="/messages" className="px-4 py-2 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
-        <MessageCircle className="w-4 h-4" /> مراسلة
-      </Link>
+      <button 
+        onClick={handleMessage}
+        disabled={isMessageLoading}
+        className="px-4 py-2 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+      >
+        {isMessageLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />} مراسلة
+      </button>
       
       <div className="flex gap-2 mr-auto md:mr-4">
         <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors" title="حفظ">

@@ -3,11 +3,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, UserPlus, Eye, X } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import { useSearchParams } from 'next/navigation';
 
-export default function MessagesClient({ currentUserId }: { currentUserId: string }) {
+export default function MessagesClient({ currentUserId, initialConversations = [] }: { currentUserId: string, initialConversations?: any[] }) {
+  const searchParams = useSearchParams();
   const supabase = createClient();
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [activeConversation, setActiveConversation] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<any[]>(initialConversations);
+  
+  // Set initial active conversation from URL if it exists
+  const initialId = searchParams.get('id');
+  const [activeConversation, setActiveConversation] = useState<string | null>(initialId);
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<any[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -27,42 +32,16 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
   }, [chatHistory, isTyping]);
 
   useEffect(() => {
-    // Fetch potential conversations (for demo, we just fetch other profiles)
-    // In a real app, this would be a query to get unique users who have exchanged messages
-    const fetchConversations = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, full_name, last_seen')
-        .neq('id', currentUserId)
-        .limit(10);
-      
-      if (data) {
-        setConversations(data.map(d => ({
-          id: d.id,
-          name: d.full_name || 'عضو',
-          lastMessage: 'انقر لبدء المحادثة',
-          time: '',
-          unread: false,
-          online: false
-        })));
-      }
-    };
-    fetchConversations();
-
     // Subscribe to presence (online status and typing indicator)
     const channel = supabase.channel('chat_presence')
       .on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
         const online: Record<string, boolean> = {};
-        let someoneTyping = false;
         
         Object.values(newState).forEach((presences: any) => {
           presences.forEach((p: any) => {
             if (p.user_id !== currentUserId) {
               online[p.user_id] = true;
-              if (p.is_typing && p.typing_to === activeConversation) {
-                someoneTyping = true;
-              }
             }
           });
         });
@@ -70,10 +49,13 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
         setOnlineUsers(online);
         
         // Only show typing if the active conversation partner is typing
-        const activePartnerTyping = Object.values(newState).some((presences: any) => 
-          presences.some((p: any) => p.user_id === activeConversation && p.is_typing && p.typing_to === currentUserId)
-        );
-        setIsTyping(activePartnerTyping);
+        if (activeConversation) {
+          const activePartner = conversations.find(c => c.id === activeConversation)?.user_id;
+          const activePartnerTyping = Object.values(newState).some((presences: any) => 
+            presences.some((p: any) => p.user_id === activePartner && p.is_typing && p.typing_to === activeConversation)
+          );
+          setIsTyping(activePartnerTyping);
+        }
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -84,17 +66,23 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUserId, activeConversation]);
+  }, [currentUserId, activeConversation, conversations]);
 
   // Load chat history and subscribe to new messages
   useEffect(() => {
     if (!activeConversation) return;
 
     const fetchMessages = async () => {
+      // Mark as read
+      await supabase.from('messages').update({ read_at: new Date().toISOString() }).eq('conversation_id', activeConversation).eq('receiver_id', currentUserId).is('read_at', null);
+
+      // Update local state
+      setConversations(prev => prev.map(c => c.id === activeConversation ? { ...c, unread: false, unreadCount: 0 } : c));
+
       const { data } = await supabase
         .from('messages')
         .select('*')
-        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${activeConversation}),and(sender_id.eq.${activeConversation},receiver_id.eq.${currentUserId})`)
+        .eq('conversation_id', activeConversation)
         .order('created_at', { ascending: true });
         
       if (data) {
@@ -108,20 +96,23 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
 
     fetchMessages();
 
-    // Subscribe to new messages
+    // Subscribe to new messages for this conversation
     const messageChannel = supabase.channel(`messages:${activeConversation}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
-        filter: `sender_id=eq.${activeConversation}`
+        filter: `conversation_id=eq.${activeConversation}`
       }, (payload) => {
-        if (payload.new.receiver_id === currentUserId) {
+        if (payload.new.sender_id !== currentUserId) {
           setChatHistory(prev => [...prev, {
             id: payload.new.id,
             sender: 'them',
             text: payload.new.content
           }]);
+          
+          // Mark as read immediately since we are in the active conversation
+          supabase.from('messages').update({ read_at: new Date().toISOString() }).eq('id', payload.new.id).then();
         }
       })
       .subscribe();
@@ -144,8 +135,7 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
     e.preventDefault();
     if (!message.trim() || !activeConversation) return;
     
-    const newMessage = { sender: 'me', text: message };
-    setChatHistory([...chatHistory, newMessage]);
+    const newMessageText = message;
     setMessage('');
     
     // Clear typing status
@@ -154,12 +144,27 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
       await channel.track({ user_id: currentUserId, is_typing: false, typing_to: null });
     }
 
+    const receiverId = conversations.find(c => c.id === activeConversation)?.user_id;
+
     // Insert to DB
-    await supabase.from('messages').insert({
+    const { data } = await supabase.from('messages').insert({
+      conversation_id: activeConversation,
       sender_id: currentUserId,
-      receiver_id: activeConversation,
-      content: newMessage.text
-    });
+      receiver_id: receiverId,
+      content: newMessageText
+    }).select().single();
+
+    if (data) {
+      setChatHistory(prev => [...prev, { id: data.id, sender: 'me', text: data.content }]);
+      
+      // Update conversations list
+      setConversations(prev => prev.map(c => {
+        if (c.id === activeConversation) {
+          return { ...c, lastMessage: data.content, time: new Date(data.created_at).toLocaleDateString('ar-EG') };
+        }
+        return c;
+      }));
+    }
   };
 
   return (
