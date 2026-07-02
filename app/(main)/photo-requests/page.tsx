@@ -25,7 +25,7 @@ export default async function PhotoRequestsPage() {
       id,
       status,
       created_at,
-      requester:requester_id (id, full_name, username, avatar_url, gender)
+      requester:requester_id (id, display_name, username, avatar_url, gender)
     `)
     .eq('target_id', user.id)
     .order('created_at', { ascending: false });
@@ -37,7 +37,7 @@ export default async function PhotoRequestsPage() {
       id,
       status,
       created_at,
-      target:target_id (id, full_name, username, avatar_url, gender)
+      target:target_id (id, display_name, username, avatar_url, gender)
     `)
     .eq('requester_id', user.id)
     .order('created_at', { ascending: false });

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { PartyPopper, CheckCircle2, ChevronRight, ChevronLeft } from '@/components/my-icons';
+import { MARITAL_STATUS_OPTIONS, RELIGIOUS_COMMITMENT_OPTIONS } from '@/lib/constants';
 
 export default function ProfileSetupPage() {
   const router = useRouter();
@@ -347,11 +348,9 @@ export default function ProfileSetupPage() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الحالة الاجتماعية</label>
                   <select name="marital_status" required value={formData.marital_status} onChange={handleChange} className={selectClass}>
                     <option value="">اختر الحالة</option>
-                    <option value="أعزب/عزباء">أعزب/عزباء</option>
-                    <option value="متزوج/ـة">متزوج/ـة</option>
-                    <option value="مطلق/ـة">مطلق/ـة</option>
-                    <option value="أرمل/ـة">أرمل/ـة</option>
-                    <option value="عاقد القران">عاقد القران</option>
+                    {MARITAL_STATUS_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -526,10 +525,9 @@ export default function ProfileSetupPage() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الالتزام الديني</label>
                   <select name="religious_commitment" required value={formData.religious_commitment} onChange={handleChange} className={selectClass}>
                     <option value="">اختر</option>
-                    <option value="ملتزم جداً">ملتزم جداً</option>
-                    <option value="ملتزم">ملتزم</option>
-                    <option value="متوسط">متوسط</option>
-                    <option value="غير ملتزم">غير ملتزم</option>
+                    {RELIGIOUS_COMMITMENT_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
                   </select>
                 </div>
                 <div>

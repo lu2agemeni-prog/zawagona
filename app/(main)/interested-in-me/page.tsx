@@ -17,11 +17,12 @@ export default async function InterestedInMePage() {
   // and join with 'profiles' table.
   const { data: interests } = await supabase
     .from('interests')
-    .select('*, sender:profiles!interests_sender_id_fkey(*)')
-    .eq('receiver_id', user.id)
+    .select('*, sender:profiles!interests_user_id_fkey(*)')
+    .eq('target_user_id', user.id)
+    .eq('status', 'interested')
     .order('created_at', { ascending: false });
 
-  const senders = interests?.map(i => i.sender) || [];
+  const senders = interests?.map(i => i.sender).filter(Boolean) || [];
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
@@ -41,10 +42,10 @@ export default async function InterestedInMePage() {
             <Link href={`/profile/${profile.id}`} key={profile.id}>
               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow flex items-center p-4 gap-4">
                  <div className="w-16 h-16 bg-slate-200 rounded-full flex-shrink-0 flex items-center justify-center text-slate-400 font-bold text-xl">
-                   {profile.full_name?.charAt(0) || '?'}
+                   {(profile.display_name || profile.username)?.charAt(0) || '?'}
                  </div>
                  <div>
-                   <h3 className="font-bold text-slate-900">{profile.full_name}</h3>
+                   <h3 className="font-bold text-slate-900">{profile.display_name || profile.username || 'عضو'}</h3>
                    <p className="text-sm text-slate-500 truncate">{profile.about_me || 'لا توجد نبذة'}</p>
                  </div>
               </div>

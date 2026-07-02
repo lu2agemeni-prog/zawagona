@@ -30,7 +30,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   // Record visit
   if (user.id !== id) {
     // Only record visit if viewing someone else's profile
-    await supabase.from('visitors').insert({
+    await supabase.from('profile_visits').insert({
       visitor_id: user.id,
       visited_id: id,
     });
