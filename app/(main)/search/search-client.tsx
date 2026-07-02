@@ -122,6 +122,7 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
 
   // Handle filter changes (reset pagination and fetch)
   useEffect(() => {
+    let isMounted = true;
     const fetchFiltered = async () => {
       setLoadingMore(true);
       let query = supabase
@@ -141,10 +142,12 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
 
       const { data } = await query.limit(20);
       
-      setProfiles(data || []);
-      setPage(1);
-      setHasMore(data?.length === 20);
-      setLoadingMore(false);
+      if (isMounted) {
+        setProfiles(data || []);
+        setPage(1);
+        setHasMore(data?.length === 20);
+        setLoadingMore(false);
+      }
     };
 
     // Skip initial render if no filters/search
@@ -152,12 +155,22 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
       const timeout = setTimeout(() => {
         fetchFiltered();
       }, 500);
-      return () => clearTimeout(timeout);
+      return () => {
+        isMounted = false;
+        clearTimeout(timeout);
+      };
     } else {
-      // Revert to initialProfiles if empty
-      setProfiles(initialProfiles);
-      setPage(1);
-      setHasMore(initialProfiles.length >= 20);
+      // Don't call setState synchronously in an effect
+      queueMicrotask(() => {
+        if (isMounted) {
+          setProfiles(initialProfiles);
+          setPage(1);
+          setHasMore(initialProfiles.length >= 20);
+        }
+      });
+      return () => {
+        isMounted = false;
+      };
     }
   }, [filters, searchQuery, currentUserId, initialProfiles, supabase]);
 

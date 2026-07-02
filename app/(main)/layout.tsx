@@ -12,7 +12,13 @@ export default async function MainLayout({
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
   
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (err) {
+    console.error(err);
+  }
   if (!user) {
     redirect('/login');
   }

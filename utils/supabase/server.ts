@@ -5,7 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "https://placeholder.supabase.co";
 
 export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) => {
-  return createServerClient(
+  const client = createServerClient(
     supabaseUrl!,
     supabaseKey!,
     {
@@ -25,4 +25,16 @@ export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) =
       },
     },
   );
+
+  const originalGetUser = client.auth.getUser.bind(client.auth);
+  client.auth.getUser = async (jwt) => {
+    try {
+      return await originalGetUser(jwt);
+    } catch (error) {
+      console.error('Supabase getUser error:', error);
+      return { data: { user: null }, error: error };
+    }
+  };
+
+  return client;
 };

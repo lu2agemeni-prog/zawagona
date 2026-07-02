@@ -31,7 +31,13 @@ export async function middleware(request: NextRequest) {
   );
 
   // refreshing the auth token
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data?.user;
+  } catch (error) {
+    console.error('Middleware Supabase error:', error);
+  }
 
   const isMainRoute = 
     request.nextUrl.pathname.startsWith('/dashboard') ||
