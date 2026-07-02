@@ -22,7 +22,7 @@ export default function ProfileSetupPage() {
     job: '', profession: '', qualification: '', income_level: '',
     religious_commitment: '', prayer_commitment: '',
     qayma_opinion: '', mahr_opinion: '', marriage_time: '', roya_opinion: '',
-    hobbies: '', partner_specs: '', about_me: '', avatar_url: 'avatar1.png'
+    hobbies: '', partner_specs: '', about_me: '', avatar_url: 'avatar1.png', is_photo_private: false
   });
 
   useEffect(() => {
@@ -63,7 +63,13 @@ export default function ProfileSetupPage() {
   }, [formData, step]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleNext = (e: React.FormEvent) => {
@@ -161,6 +167,7 @@ export default function ProfileSetupPage() {
         partner_specs: formData.partner_specs,
         about_me: formData.about_me,
         avatar_url: formData.avatar_url,
+        is_photo_private: formData.is_photo_private,
       };
 
       const { error: updateError } = await supabase
@@ -643,6 +650,23 @@ export default function ProfileSetupPage() {
                       </label>
                     </>
                   )}
+                </div>
+                <div className="mt-4 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <div className="flex items-center h-5">
+                      <input
+                        type="checkbox"
+                        name="is_photo_private"
+                        checked={formData.is_photo_private}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100">تفعيل خصوصية الصورة (ضبابية)</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">ستظهر صورتك ضبابية للعامة، ولا يمكن رؤيتها إلا لمن توافق على طلبهم. ننصح الإناث بتفعيل هذا الخيار.</span>
+                    </div>
+                  </label>
                 </div>
               </div>
             </div>

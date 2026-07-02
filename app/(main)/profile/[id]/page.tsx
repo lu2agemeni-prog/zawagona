@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import ProfileActions from './profile-actions';
 import { ArrowLeft, Star } from '@/components/my-icons';
 import Link from 'next/link';
+import { PrivateImage } from '@/components/private-image';
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
@@ -35,6 +36,28 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     });
   }
 
+  const isOwner = user.id === profile.id;
+  
+  // Check photo permissions if not owner
+  let hasPhotoAccess = isOwner;
+  if (!isOwner && profile.is_photo_private) {
+    // Check if there is an approved request
+    const { data: permission } = await supabase
+      .from('photo_permissions')
+      .select('status')
+      .eq('requester_id', user.id)
+      .eq('target_id', profile.id)
+      .eq('status', 'approved')
+      .single();
+      
+    if (permission) {
+      hasPhotoAccess = true;
+    }
+  }
+
+  const defaultAvatarUrl = profile.gender === 'female' ? '/avatars/avatar_f2.png' : '/avatars/avatar1.png';
+  const avatarUrl = profile.avatar_url ? (profile.avatar_url.startsWith('http') ? profile.avatar_url : `/${profile.avatar_url}`) : defaultAvatarUrl;
+
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-6">
       <Link href="/search" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors mb-4">
@@ -42,19 +65,33 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
       </Link>
 
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="h-64 bg-slate-200 relative">
-           <div className="absolute inset-0 flex items-center justify-center text-slate-400">
-             <span className="text-6xl">{profile.full_name?.charAt(0) || '?'}</span>
-           </div>
+        <div className="h-64 bg-indigo-50 relative overflow-hidden">
+           {profile.avatar_url && (
+             <PrivateImage 
+               src={avatarUrl} 
+               alt="Cover" 
+               fill 
+               className="object-cover opacity-40 blur-3xl"
+               isPrivate={profile.is_photo_private}
+               hasAccess={hasPhotoAccess}
+             />
+           )}
         </div>
         
         <div className="p-6 md:p-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 -mt-16 md:-mt-20 mb-6">
-             <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full p-2 relative z-10 border border-slate-100 shadow-sm flex items-center justify-center text-4xl font-bold text-slate-400">
-                {profile.full_name?.charAt(0) || '?'}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 -mt-16 md:-mt-20 mb-6 relative">
+             <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full p-1 relative z-10 border-4 border-white shadow-sm flex items-center justify-center text-4xl font-bold text-slate-400 overflow-hidden">
+                <PrivateImage 
+                  src={avatarUrl} 
+                  alt={profile.username || ''} 
+                  fill 
+                  className="object-cover rounded-full"
+                  isPrivate={profile.is_photo_private}
+                  hasAccess={hasPhotoAccess}
+                />
              </div>
              
-             {user.id !== profile.id && (
+             {!isOwner && (
                <ProfileActions profileId={profile.id} />
              )}
           </div>

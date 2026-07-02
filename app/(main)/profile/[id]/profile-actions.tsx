@@ -1,7 +1,7 @@
 'use client';
 
 import { Heart, MessageCircle, Ban, Bookmark } from '@/components/my-icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,6 +12,21 @@ export default function ProfileActions({ profileId }: { profileId: string }) {
   const supabase = createClient();
   const router = useRouter();
 
+  useEffect(() => {
+    async function checkStatus() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('interests')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('target_user_id', profileId)
+        .eq('status', 'interested')
+        .maybeSingle();
+      if (data) setIsLiked(true);
+    }
+    checkStatus();
+  }, [profileId, supabase]);
+
   const handleLike = async () => {
     setIsLoading(true);
     try {
@@ -19,10 +34,10 @@ export default function ProfileActions({ profileId }: { profileId: string }) {
        if (!user) return;
        
        if (isLiked) {
-         await supabase.from('interests').delete().match({ sender_id: user.id, receiver_id: profileId });
+         await supabase.from('interests').delete().match({ user_id: user.id, target_user_id: profileId, status: 'interested' });
          setIsLiked(false);
        } else {
-         await supabase.from('interests').insert({ sender_id: user.id, receiver_id: profileId });
+         await supabase.from('interests').insert({ user_id: user.id, target_user_id: profileId, status: 'interested' });
          setIsLiked(true);
        }
     } catch (e) {

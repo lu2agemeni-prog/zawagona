@@ -32,3 +32,16 @@
     100% { transform: translateX(100%); }
   }
 }
+
+/* Privacy Utilities */
+.prevent-screenshot {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Make image unclickable so they can't save it easily */
+img.private-image {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}

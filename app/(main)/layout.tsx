@@ -1,5 +1,6 @@
 import Sidebar from '@/components/sidebar';
 import BottomNav from '@/components/bottom-nav';
+import { PrivacyGuard } from '@/components/privacy-guard';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -36,8 +37,10 @@ export default async function MainLayout({
           <h2 className="text-xl font-black text-primary-700 dark:text-primary-500 tracking-tight">مـودة</h2>
           <Sidebar profile={profile || {}} mobile={true} />
         </div>
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-          {children}
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 prevent-screenshot">
+          <PrivacyGuard>
+            {children}
+          </PrivacyGuard>
         </main>
         <div className="md:hidden">
           <BottomNav unreadCount={0} />
