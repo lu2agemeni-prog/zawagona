@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, Filter, Heart, UserX, Star, Save, BellRing } from '@/components/my-icons';
 import Link from 'next/link';
 
@@ -67,6 +67,29 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
     
     return matchSearch && matchMarital && matchReligious;
   });
+
+  const [displayCount, setDisplayCount] = useState(6);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const target = observerTarget.current;
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && displayCount < filteredProfiles.length) {
+          setDisplayCount(prev => prev + 6);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (target) {
+      observer.observe(target);
+    }
+
+    return () => {
+      if (target) observer.unobserve(target);
+    };
+  }, [observerTarget, displayCount, filteredProfiles.length]);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -149,7 +172,7 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProfiles.map((profile) => {
+        {filteredProfiles.slice(0, displayCount).map((profile) => {
           const compScore = calculateCompatibility(profile);
           return (
           <Link href={`/profile/${profile.id}`} key={profile.id}>
@@ -204,6 +227,12 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
           </Link>
         )})}
       </div>
+      
+      {filteredProfiles.length > displayCount && (
+        <div ref={observerTarget} className="flex justify-center p-4">
+          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
 
       {filteredProfiles.length === 0 && (
         <div className="text-center py-12 bg-white rounded-2xl border border-slate-100 animate-in fade-in">

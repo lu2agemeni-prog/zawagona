@@ -1,11 +1,8 @@
 @import "tailwindcss";
-
 @custom-variant dark (&:is(.dark *));
-
 @theme {
   --animate-shimmer: shimmer 2s infinite;
   --animate-spin-slow: spin 3s linear infinite;
-
   /* Custom Color Palette for Islamic App */
   --color-primary-50: #f2f7f4;
   --color-primary-100: #e1efe5;
@@ -18,7 +15,6 @@
   --color-primary-800: #244735;
   --color-primary-900: #1e3b2d;
   --color-primary-950: #0f2018;
-
   --color-secondary-50: #fbf8eb;
   --color-secondary-100: #f5eed0;
   --color-secondary-200: #eadba5;
@@ -30,9 +26,7 @@
   --color-secondary-800: #754218;
   --color-secondary-900: #623817;
   --color-secondary-950: #381c0a;
-
-  --color-surface-50: #fafaf9; /* Stone 50 for warmer backgrounds */
-
+  --color-surface-50: #fafaf9;
   @keyframes shimmer {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }

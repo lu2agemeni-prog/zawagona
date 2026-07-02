@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
-import { MessageSquare, Send } from 'lucide-react';
+
+import { useState, useRef, useEffect } from 'react';
+import { MessageSquare, Send, UserPlus, Eye, X } from 'lucide-react';
 
 export default function MessagesClient({ currentUserId }: { currentUserId: string }) {
   // Optimistic UI for messages
@@ -11,6 +12,7 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
       lastMessage: 'مرحباً، كيف حالك؟',
       time: 'منذ ساعتين',
       unread: true,
+      online: true,
     },
     {
       id: '2',
@@ -18,24 +20,105 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
       lastMessage: 'أهلاً بك',
       time: 'أمس',
       unread: false,
+      online: false,
     }
   ]);
+
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<{sender: string, text: string}[]>([
     { sender: 'them', text: 'مرحباً، كيف حالك؟ قرأت ملفك الشخصي.' },
     { sender: 'me', text: 'أهلاً بك، الحمد لله بخير.' }
   ]);
+  const [isTyping, setIsTyping] = useState(false);
+
+  // Modals state
+  const [showWaliModal, setShowWaliModal] = useState(false);
+  const [showRoyaModal, setShowRoyaModal] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory, isTyping]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
     setChatHistory([...chatHistory, { sender: 'me', text: message }]);
     setMessage('');
+    
+    // Simulate typing and reply for real-time feel
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      setChatHistory(prev => [...prev, { sender: 'them', text: 'هذه رسالة تلقائية للرد عليك.' }]);
+    }, 2000);
   };
 
   return (
-    <div className="flex h-[70vh] bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex h-[70vh] bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 transition-colors">
+      
+      {/* Wali Integration Modal */}
+      {showWaliModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl relative">
+            <button onClick={() => setShowWaliModal(false)} className="absolute left-4 top-4 text-slate-400 hover:text-slate-600">
+              <X className="w-6 h-6" />
+            </button>
+            <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4">
+              <UserPlus className="w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">إشراك الولي</h3>
+            <p className="text-slate-600 mb-6 text-sm">
+              أدخلي رقم هاتف ولي الأمر (مثل الوالد أو الأخ) ليتم إرسال نسخة من طلبات التعارف أو المحادثة إليه لضمان الشفافية والموثوقية.
+            </p>
+            <input type="tel" placeholder="رقم هاتف الولي" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <button onClick={() => { alert('تم الحفظ. سيتم إرسال نسخة من المحادثة إلى ولي الأمر.'); setShowWaliModal(false); }} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors">
+              حفظ وتفعيل
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Ro'ya Shar'iya Modal */}
+      {showRoyaModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl relative">
+            <button onClick={() => setShowRoyaModal(false)} className="absolute left-4 top-4 text-slate-400 hover:text-slate-600">
+              <X className="w-6 h-6" />
+            </button>
+            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+              <Eye className="w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">طلب رؤية شرعية</h3>
+            <p className="text-slate-600 mb-6 text-sm">
+              يمكنك الآن طلب تحديد موعد للرؤية الشرعية بشكل رسمي ومحترم بحضور الأهل.
+            </p>
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">المكان المفضل</label>
+                <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                  <option>في منزل الأهل</option>
+                  <option>في مكان عام بحضور الأهل</option>
+                  <option>عبر مكالمة فيديو رسمية (مبدئياً)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">رسالة إضافية للأهل</label>
+                <textarea rows={3} placeholder="يمكنك كتابة رسالة توضيحية..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none"></textarea>
+              </div>
+            </div>
+            <button onClick={() => { alert('تم إرسال طلب الرؤية الشرعية بنجاح.'); setShowRoyaModal(false); }} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors">
+              إرسال الطلب
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar - Conversations list */}
       <div className={`w-full md:w-1/3 border-l border-slate-100 flex flex-col ${activeConversation ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-slate-100">
@@ -48,8 +131,13 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
               onClick={() => setActiveConversation(conv.id)}
               className={`w-full text-right p-4 border-b border-slate-50 transition-colors flex items-center gap-3 ${activeConversation === conv.id ? 'bg-primary-50' : 'hover:bg-slate-50'}`}
             >
-              <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold flex-shrink-0">
-                {conv.name.charAt(0)}
+              <div className="relative">
+                <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold flex-shrink-0">
+                  {conv.name.charAt(0)}
+                </div>
+                {conv.online && (
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
+                )}
               </div>
               <div className="flex-1 overflow-hidden">
                 <div className="flex justify-between items-baseline mb-1">
@@ -70,7 +158,7 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
       <div className={`w-full md:w-2/3 flex flex-col ${!activeConversation ? 'hidden md:flex bg-slate-50' : 'flex'}`}>
         {!activeConversation ? (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
+            <div className="w-20 h-20 bg-white border border-slate-100 rounded-full flex items-center justify-center shadow-sm mb-4">
               <MessageSquare className="w-8 h-8 text-slate-300" />
             </div>
             <p>اختر محادثة للبدء</p>
@@ -78,19 +166,39 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
         ) : (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-slate-100 flex items-center gap-3 bg-white">
-              <button 
-                onClick={() => setActiveConversation(null)}
-                className="md:hidden p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
-              >
-                ←
-              </button>
-              <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold">
-                {conversations.find(c => c.id === activeConversation)?.name.charAt(0)}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-3 bg-white">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setActiveConversation(null)}
+                  className="md:hidden p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                >
+                  ←
+                </button>
+                <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold">
+                  {conversations.find(c => c.id === activeConversation)?.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800">{conversations.find(c => c.id === activeConversation)?.name}</h3>
+                  <span className="text-xs text-emerald-500">متصل الآن</span>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-slate-800">{conversations.find(c => c.id === activeConversation)?.name}</h3>
-                <span className="text-xs text-emerald-500">متصل الآن</span>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setShowRoyaModal(true)}
+                  title="طلب رؤية شرعية"
+                  className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors flex items-center gap-1.5"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span className="text-xs font-bold hidden sm:inline">رؤية شرعية</span>
+                </button>
+                <button 
+                  onClick={() => setShowWaliModal(true)}
+                  title="إشراك الولي"
+                  className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors flex items-center gap-1.5"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span className="text-xs font-bold hidden sm:inline">إشراك الولي</span>
+                </button>
               </div>
             </div>
 
@@ -103,6 +211,16 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
                   </div>
                 </div>
               ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-white border border-slate-100 shadow-sm rounded-2xl rounded-bl-sm p-4 flex gap-1 items-center">
+                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
+                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
@@ -113,12 +231,12 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="اكتب رسالتك هنا..."
-                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
+                  className="flex-1 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                 />
                 <button 
                   type="submit"
                   disabled={!message.trim()}
-                  className="w-12 h-12 bg-primary-600 text-white rounded-xl flex items-center justify-center hover:bg-primary-700 disabled:opacity-50 disabled:hover:bg-primary-600 transition-colors"
+                  className="w-12 h-12 bg-primary-600 text-white rounded-xl flex items-center justify-center hover:bg-primary-700 disabled:opacity-50 disabled:hover:bg-primary-600 transition-colors flex-shrink-0"
                 >
                   <Send className="w-5 h-5 rtl:rotate-180" />
                 </button>
