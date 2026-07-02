@@ -32,7 +32,7 @@ export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) =
       return await originalGetUser(jwt);
     } catch (error) {
       console.error('Supabase getUser error:', error);
-      return { data: { user: null }, error: error };
+      return { data: { user: null }, error: error as any };
     }
   };
 

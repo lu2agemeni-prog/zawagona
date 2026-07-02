@@ -15,7 +15,7 @@ export const createClient = () => {
       return await originalGetUser(jwt);
     } catch (error) {
       console.error('Supabase client getUser error:', error);
-      return { data: { user: null }, error: error };
+      return { data: { user: null }, error: error as any };
     }
   };
 
