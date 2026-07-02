@@ -2,11 +2,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Filter, Heart, UserX, Star, Save, BellRing } from '@/components/my-icons';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function SearchClient({ initialProfiles, currentUserId, currentUserProfile }: { initialProfiles: any[], currentUserId: string, currentUserProfile: any }) {
+  const supabase = createClient();
   const [profiles, setProfiles] = useState(initialProfiles);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(initialProfiles.length >= 20);
   
   // Advanced filters state
   const [filters, setFilters] = useState({
@@ -59,24 +64,48 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
     return Math.min(100, score);
   };
 
-  const filteredProfiles = profiles.filter(p => {
-    const matchSearch = p.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.about_me?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchMarital = filters.marital_status ? p.marital_status === filters.marital_status : true;
-    const matchReligious = filters.religious_commitment ? p.religious_commitment === filters.religious_commitment : true;
-    
-    return matchSearch && matchMarital && matchReligious;
-  });
-
-  const [displayCount, setDisplayCount] = useState(6);
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  const loadMoreProfiles = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    
+    let query = supabase
+      .from('profiles')
+      .select('*')
+      .neq('id', currentUserId);
+
+    if (filters.marital_status) {
+      query = query.eq('marital_status', filters.marital_status);
+    }
+    if (filters.religious_commitment) {
+      query = query.eq('religious_commitment', filters.religious_commitment);
+    }
+    if (searchQuery) {
+      query = query.or(`full_name.ilike.%${searchQuery}%,about_me.ilike.%${searchQuery}%`);
+    }
+
+    const { data } = await query.range(page * 20, (page + 1) * 20 - 1);
+
+    if (data && data.length > 0) {
+      setProfiles(prev => {
+        const newProfiles = data.filter(d => !prev.find((p: any) => p.id === d.id));
+        return [...prev, ...newProfiles];
+      });
+      setPage(p => p + 1);
+      if (data.length < 20) setHasMore(false);
+    } else {
+      setHasMore(false);
+    }
+    setLoadingMore(false);
+  };
 
   useEffect(() => {
     const target = observerTarget.current;
     const observer = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && displayCount < filteredProfiles.length) {
-          setDisplayCount(prev => prev + 6);
+        if (entries[0].isIntersecting && !loadingMore && hasMore) {
+          loadMoreProfiles();
         }
       },
       { threshold: 0.1 }
@@ -89,7 +118,48 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
     return () => {
       if (target) observer.unobserve(target);
     };
-  }, [observerTarget, displayCount, filteredProfiles.length]);
+  }, [loadingMore, hasMore, page, filters, searchQuery]);
+
+  // Handle filter changes (reset pagination and fetch)
+  useEffect(() => {
+    const fetchFiltered = async () => {
+      setLoadingMore(true);
+      let query = supabase
+        .from('profiles')
+        .select('*')
+        .neq('id', currentUserId);
+
+      if (filters.marital_status) {
+        query = query.eq('marital_status', filters.marital_status);
+      }
+      if (filters.religious_commitment) {
+        query = query.eq('religious_commitment', filters.religious_commitment);
+      }
+      if (searchQuery) {
+        query = query.or(`full_name.ilike.%${searchQuery}%,about_me.ilike.%${searchQuery}%`);
+      }
+
+      const { data } = await query.limit(20);
+      
+      setProfiles(data || []);
+      setPage(1);
+      setHasMore(data?.length === 20);
+      setLoadingMore(false);
+    };
+
+    // Skip initial render if no filters/search
+    if (searchQuery || filters.marital_status || filters.religious_commitment) {
+      const timeout = setTimeout(() => {
+        fetchFiltered();
+      }, 500);
+      return () => clearTimeout(timeout);
+    } else {
+      // Revert to initialProfiles if empty
+      setProfiles(initialProfiles);
+      setPage(1);
+      setHasMore(initialProfiles.length >= 20);
+    }
+  }, [filters, searchQuery, currentUserId, initialProfiles, supabase]);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -172,7 +242,7 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProfiles.slice(0, displayCount).map((profile) => {
+        {profiles.map((profile) => {
           const compScore = calculateCompatibility(profile);
           return (
           <Link href={`/profile/${profile.id}`} key={profile.id}>
@@ -228,13 +298,13 @@ export default function SearchClient({ initialProfiles, currentUserId, currentUs
         )})}
       </div>
       
-      {filteredProfiles.length > displayCount && (
+      {hasMore && (
         <div ref={observerTarget} className="flex justify-center p-4">
           <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
 
-      {filteredProfiles.length === 0 && (
+      {profiles.length === 0 && !loadingMore && (
         <div className="text-center py-12 bg-white rounded-2xl border border-slate-100 animate-in fade-in">
           <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="w-8 h-8" />

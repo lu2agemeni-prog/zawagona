@@ -2,35 +2,16 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, UserPlus, Eye, X } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function MessagesClient({ currentUserId }: { currentUserId: string }) {
-  // Optimistic UI for messages
-  const [conversations, setConversations] = useState([
-    {
-      id: '1',
-      name: 'عضو محتمل 1',
-      lastMessage: 'مرحباً، كيف حالك؟',
-      time: 'منذ ساعتين',
-      unread: true,
-      online: true,
-    },
-    {
-      id: '2',
-      name: 'عضو محتمل 2',
-      lastMessage: 'أهلاً بك',
-      time: 'أمس',
-      unread: false,
-      online: false,
-    }
-  ]);
-
+  const supabase = createClient();
+  const [conversations, setConversations] = useState<any[]>([]);
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
   const [message, setMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState<{sender: string, text: string}[]>([
-    { sender: 'them', text: 'مرحباً، كيف حالك؟ قرأت ملفك الشخصي.' },
-    { sender: 'me', text: 'أهلاً بك، الحمد لله بخير.' }
-  ]);
+  const [chatHistory, setChatHistory] = useState<any[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<Record<string, boolean>>({});
 
   // Modals state
   const [showWaliModal, setShowWaliModal] = useState(false);
@@ -45,18 +26,140 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
     scrollToBottom();
   }, [chatHistory, isTyping]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Fetch potential conversations (for demo, we just fetch other profiles)
+    // In a real app, this would be a query to get unique users who have exchanged messages
+    const fetchConversations = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, last_seen')
+        .neq('id', currentUserId)
+        .limit(10);
+      
+      if (data) {
+        setConversations(data.map(d => ({
+          id: d.id,
+          name: d.full_name || 'عضو',
+          lastMessage: 'انقر لبدء المحادثة',
+          time: '',
+          unread: false,
+          online: false
+        })));
+      }
+    };
+    fetchConversations();
+
+    // Subscribe to presence (online status and typing indicator)
+    const channel = supabase.channel('chat_presence')
+      .on('presence', { event: 'sync' }, () => {
+        const newState = channel.presenceState();
+        const online: Record<string, boolean> = {};
+        let someoneTyping = false;
+        
+        Object.values(newState).forEach((presences: any) => {
+          presences.forEach((p: any) => {
+            if (p.user_id !== currentUserId) {
+              online[p.user_id] = true;
+              if (p.is_typing && p.typing_to === activeConversation) {
+                someoneTyping = true;
+              }
+            }
+          });
+        });
+        
+        setOnlineUsers(online);
+        
+        // Only show typing if the active conversation partner is typing
+        const activePartnerTyping = Object.values(newState).some((presences: any) => 
+          presences.some((p: any) => p.user_id === activeConversation && p.is_typing && p.typing_to === currentUserId)
+        );
+        setIsTyping(activePartnerTyping);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ user_id: currentUserId, is_typing: false, typing_to: null });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId, activeConversation]);
+
+  // Load chat history and subscribe to new messages
+  useEffect(() => {
+    if (!activeConversation) return;
+
+    const fetchMessages = async () => {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${activeConversation}),and(sender_id.eq.${activeConversation},receiver_id.eq.${currentUserId})`)
+        .order('created_at', { ascending: true });
+        
+      if (data) {
+        setChatHistory(data.map(d => ({
+          id: d.id,
+          sender: d.sender_id === currentUserId ? 'me' : 'them',
+          text: d.content,
+        })));
+      }
+    };
+
+    fetchMessages();
+
+    // Subscribe to new messages
+    const messageChannel = supabase.channel(`messages:${activeConversation}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `sender_id=eq.${activeConversation}`
+      }, (payload) => {
+        if (payload.new.receiver_id === currentUserId) {
+          setChatHistory(prev => [...prev, {
+            id: payload.new.id,
+            sender: 'them',
+            text: payload.new.content
+          }]);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messageChannel);
+    };
+  }, [activeConversation, currentUserId]);
+
+  const handleTyping = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+    // Broadcast typing status
+    const channel = supabase.channel('chat_presence');
+    if (channel.state === 'joined') {
+      await channel.track({ user_id: currentUserId, is_typing: e.target.value.length > 0, typing_to: activeConversation });
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
-    setChatHistory([...chatHistory, { sender: 'me', text: message }]);
+    if (!message.trim() || !activeConversation) return;
+    
+    const newMessage = { sender: 'me', text: message };
+    setChatHistory([...chatHistory, newMessage]);
     setMessage('');
     
-    // Simulate typing and reply for real-time feel
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      setChatHistory(prev => [...prev, { sender: 'them', text: 'هذه رسالة تلقائية للرد عليك.' }]);
-    }, 2000);
+    // Clear typing status
+    const channel = supabase.channel('chat_presence');
+    if (channel.state === 'joined') {
+      await channel.track({ user_id: currentUserId, is_typing: false, typing_to: null });
+    }
+
+    // Insert to DB
+    await supabase.from('messages').insert({
+      sender_id: currentUserId,
+      receiver_id: activeConversation,
+      content: newMessage.text
+    });
   };
 
   return (
@@ -135,7 +238,7 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
                 <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold flex-shrink-0">
                   {conv.name.charAt(0)}
                 </div>
-                {conv.online && (
+                {onlineUsers[conv.id] && (
                   <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
                 )}
               </div>
@@ -179,7 +282,9 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-800">{conversations.find(c => c.id === activeConversation)?.name}</h3>
-                  <span className="text-xs text-emerald-500">متصل الآن</span>
+                  {activeConversation && onlineUsers[activeConversation] && (
+                    <span className="text-xs text-emerald-500">متصل الآن</span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -213,10 +318,13 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
               ))}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="bg-white border border-slate-100 shadow-sm rounded-2xl rounded-bl-sm p-4 flex gap-1 items-center">
-                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                  <div className="bg-white border border-slate-100 shadow-sm rounded-2xl rounded-bl-sm p-4 flex gap-2 items-center">
+                    <span className="text-xs text-slate-500 font-medium">جاري الكتابة</span>
+                    <div className="flex gap-1">
+                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -229,7 +337,7 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
                 <input 
                   type="text"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={handleTyping}
                   placeholder="اكتب رسالتك هنا..."
                   className="flex-1 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                 />
