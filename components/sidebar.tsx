@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Star, Bell, User, Heart, UserX, Users, Trophy, Phone, Share2, LogOut, Menu } from '@/components/my-icons';
+import { Home, Search, Star, Bell, User, Heart, UserX, Users, Trophy, Phone, Share2, LogOut, Menu, BookOpen, HeartHandshake, PauseCircle } from '@/components/my-icons';
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -27,7 +27,10 @@ export default function Sidebar({ profile, mobile = false, unreadCount = 0 }: { 
     { name: 'قائمة التجاهل', href: '/ignored', icon: UserX },
     { name: 'من يهتم بي', href: '/interested-in-me', icon: Users },
     { name: 'من زار ملفي', href: '/visitors', icon: Users },
+    { name: 'مكتبة ومقالات', href: '/library', icon: BookOpen },
+    { name: 'استشارات للمقبلين', href: '/counseling', icon: HeartHandshake },
     { name: 'قصص النجاح', href: '/success-stories', icon: Trophy },
+    { name: 'إعلان الخطبة (تجميد)', href: '/engagement', icon: PauseCircle, highlight: true },
     { name: 'الانضمام لباقة التميز', href: '/premium', icon: Star, highlight: true },
     { name: 'اتصل بنا', href: '/contact', icon: Phone },
     { name: 'مشاركة التطبيق', href: '/share', icon: Share2 },
