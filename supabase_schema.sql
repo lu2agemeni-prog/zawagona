@@ -5,6 +5,8 @@ create extension if not exists "uuid-ossp";
 create table public.profiles (
   id uuid references auth.users on delete cascade not null primary key,
   username text unique,
+  display_name text,
+  phone_number text,
   gender text check (gender in ('male', 'female')),
   age integer,
   nationality text,
@@ -49,6 +51,15 @@ create table public.profiles (
   premium_until timestamp with time zone,
   is_admin boolean default false,
   is_approved boolean default false,
+  is_verified boolean default false,
+  last_active timestamp with time zone,
+  deleted_at timestamp with time zone,
+  
+  -- Match Preferences
+  pref_age_min integer,
+  pref_age_max integer,
+  pref_marital_status text,
+  pref_residence text,
   
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -111,11 +122,27 @@ create policy "Users can view their own interests" on public.interests for selec
 create policy "Users can insert their own interests" on public.interests for insert with check (auth.uid() = user_id);
 create policy "Users can update their own interests" on public.interests for update using (auth.uid() = user_id);
 
+-- CONVERSATIONS TABLE
+create table public.conversations (
+  id uuid default uuid_generate_v4() primary key,
+  participant1_id uuid references public.profiles(id) on delete cascade not null,
+  participant2_id uuid references public.profiles(id) on delete cascade not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(participant1_id, participant2_id)
+);
+
+alter table public.conversations enable row level security;
+create policy "Users can view their conversations" on public.conversations for select using (auth.uid() = participant1_id or auth.uid() = participant2_id);
+create policy "Users can insert conversations" on public.conversations for insert with check (auth.uid() = participant1_id or auth.uid() = participant2_id);
+
 -- MESSAGES TABLE
 create table public.messages (
   id uuid default uuid_generate_v4() primary key,
+  conversation_id uuid references public.conversations(id) on delete cascade,
   sender_id uuid references public.profiles(id) on delete cascade not null,
   receiver_id uuid references public.profiles(id) on delete cascade not null,
+  type text default 'text' check (type in ('text', 'image')),
   content text not null,
   read_at timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -136,6 +163,9 @@ create table public.notifications (
   user_id uuid references public.profiles(id) on delete cascade not null,
   type text not null,
   content text not null,
+  action_link text,
+  entity_id uuid,
+  entity_type text,
   is_read boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -286,6 +316,21 @@ create table public.photo_permissions (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(requester_id, target_id)
 );
+
+-- USER PHOTOS TABLE
+create table public.user_photos (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  url text not null,
+  is_primary boolean default false,
+  is_private boolean default false,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.user_photos enable row level security;
+create policy "Users can view public photos" on public.user_photos for select using (is_private = false);
+create policy "Users can view their own photos" on public.user_photos for select using (auth.uid() = user_id);
+create policy "Users can manage their photos" on public.user_photos for all using (auth.uid() = user_id);
 
 alter table public.photo_permissions enable row level security;
 
