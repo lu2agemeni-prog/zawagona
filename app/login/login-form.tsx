@@ -5,6 +5,12 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, Mail, Lock } from '@/components/my-icons';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email('البريد الإلكتروني غير صالح'),
+  password: z.string().min(1, 'يرجى إدخال كلمة المرور'),
+});
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -18,6 +24,13 @@ export default function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      setError(result.error.issues[0].message);
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.auth.signInWithPassword({
       email,

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --animate-shimmer: shimmer 2s infinite;
   --animate-spin-slow: spin 3s linear infinite;

@@ -38,7 +38,29 @@ export default function ProfileSetupPage() {
       }
     }
     fetchGender();
+
+    // Load saved progress
+    const savedData = localStorage.getItem('onboarding_form_data');
+    const savedStep = localStorage.getItem('onboarding_step');
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setTimeout(() => setFormData(parsed), 0);
+      } catch (e) {}
+    }
+    if (savedStep) {
+      const parsedStep = parseInt(savedStep, 10);
+      setTimeout(() => setStep(parsedStep), 0);
+    }
   }, [router, supabase]);
+
+  useEffect(() => {
+    // Auto-save progress
+    if (step > 1 || formData.age !== '') {
+      localStorage.setItem('onboarding_form_data', JSON.stringify(formData));
+      localStorage.setItem('onboarding_step', step.toString());
+    }
+  }, [formData, step]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -55,6 +77,29 @@ export default function ProfileSetupPage() {
 
   const handlePrev = () => {
     setStep(s => Math.max(1, s - 1));
+  };
+
+  const saveAndExit = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not found');
+      
+      // Save what we have so far to DB
+      const payload: any = {};
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value) payload[key] = value;
+      });
+
+      if (Object.keys(payload).length > 0) {
+        await supabase.from('profiles').update(payload).eq('id', user.id);
+      }
+      
+      router.push('/dashboard');
+    } catch (err) {
+      console.error(err);
+      router.push('/dashboard');
+    }
   };
 
   const handleSubmit = async () => {
@@ -125,6 +170,10 @@ export default function ProfileSetupPage() {
 
       if (updateError) throw updateError;
 
+      // Clear auto-saved progress
+      localStorage.removeItem('onboarding_form_data');
+      localStorage.removeItem('onboarding_step');
+
       setShowCelebration(true);
       setTimeout(() => {
         router.push('/dashboard');
@@ -136,12 +185,12 @@ export default function ProfileSetupPage() {
     }
   };
 
-  const selectClass = "mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm bg-white border";
+  const selectClass = "mt-1 block w-full rounded-md border-gray-300 dark:border-slate-700 dark:bg-slate-800 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm bg-white dark:bg-slate-900 border";
 
   if (showCelebration) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white p-10 rounded-2xl shadow-xl text-center max-w-md w-full animate-in zoom-in duration-500 border border-indigo-100 relative overflow-hidden">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-900 p-10 rounded-2xl shadow-xl text-center max-w-md w-full animate-in zoom-in duration-500 border border-indigo-100 relative overflow-hidden">
           {/* Confetti simulation with css classes or we can just use simple emojis floating, but static is fine since we have transition */}
           <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-50">
              <div className="absolute top-10 left-10 text-2xl animate-bounce" style={{animationDelay: '0s'}}>🎉</div>
@@ -154,8 +203,8 @@ export default function ProfileSetupPage() {
               <PartyPopper className="h-16 w-16" />
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-4 relative z-10">تهانينا! 🎉</h2>
-          <p className="text-lg text-slate-600 mb-6 relative z-10">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4 relative z-10">تهانينا! 🎉</h2>
+          <p className="text-lg text-slate-600 dark:text-slate-400 mb-6 relative z-10">
             تم استكمال ملفك الشخصي بنجاح.
           </p>
           <div className="flex justify-center items-center text-sm font-medium text-indigo-600 bg-indigo-50 py-3 px-6 rounded-full relative z-10">
@@ -168,23 +217,23 @@ export default function ProfileSetupPage() {
   }
   
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-slate-100">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-10 px-4">
+      <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
         
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-3">
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">بناء الملف الشخصي</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-100">بناء الملف الشخصي</h1>
             <span className="text-sm font-bold text-indigo-700 bg-indigo-50 px-4 py-1.5 rounded-full border border-indigo-100">
-              خطوة {step} من {totalSteps}
+              {step === totalSteps ? 'الخطوة الأخيرة' : `متبقي ${totalSteps - step + 1} خطوات`}
             </span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
             <div 
               className="bg-gradient-to-r from-indigo-500 to-indigo-600 h-full rounded-full transition-all duration-500 ease-out relative"
               style={{ width: `${(step / totalSteps) * 100}%` }}
             >
-              <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
+              <div className="absolute inset-0 bg-white dark:bg-slate-900/20 w-full animate-[shimmer_2s_infinite]"></div>
             </div>
           </div>
         </div>
@@ -203,7 +252,7 @@ export default function ProfileSetupPage() {
               <h2 className="text-xl font-semibold text-indigo-700 border-b border-indigo-100 pb-2">البيانات الشخصية</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">السن</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">السن</label>
                   <select name="age" required value={formData.age} onChange={handleChange} className={selectClass}>
                     <option value="">اختر السن</option>
                     {Array.from({length: 50}, (_, i) => i + 18).map(age => (
@@ -212,7 +261,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الجنسية</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الجنسية</label>
                   <select name="nationality" required value={formData.nationality} onChange={handleChange} className={selectClass}>
                     <option value="">اختر الجنسية</option>
                     <option value="مصر">مصر</option>
@@ -250,7 +299,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الإقامة الحالية</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الإقامة الحالية</label>
                   <select name="residence" required value={formData.residence} onChange={handleChange} className={selectClass}>
                     <option value="">اختر الإقامة</option>
                     <option value="مصر">مصر</option>
@@ -288,7 +337,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الحالة الاجتماعية</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الحالة الاجتماعية</label>
                   <select name="marital_status" required value={formData.marital_status} onChange={handleChange} className={selectClass}>
                     <option value="">اختر الحالة</option>
                     <option value="أعزب/عزباء">أعزب/عزباء</option>
@@ -299,7 +348,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">عدد الأولاد</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">عدد الأولاد</label>
                   <select name="children_count" required value={formData.children_count} onChange={handleChange} className={selectClass}>
                     <option value="0">بدون أولاد</option>
                     <option value="1">1</option>
@@ -312,7 +361,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">التدخين</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">التدخين</label>
                   <select name="smoker" required value={formData.smoker} onChange={handleChange} className={selectClass}>
                     <option value="">هل تدخن؟</option>
                     <option value="no">لا</option>
@@ -330,7 +379,7 @@ export default function ProfileSetupPage() {
               <h2 className="text-xl font-semibold text-indigo-700 border-b border-indigo-100 pb-2">البيانات الجسمانية</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الطول (سم)</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الطول (سم)</label>
                   <select name="height" required value={formData.height} onChange={handleChange} className={selectClass}>
                     <option value="">اختر الطول</option>
                     {Array.from({length: 80}, (_, i) => i + 140).map(h => (
@@ -339,7 +388,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الوزن (كجم)</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الوزن (كجم)</label>
                   <select name="weight" required value={formData.weight} onChange={handleChange} className={selectClass}>
                     <option value="">اختر الوزن</option>
                     {Array.from({length: 100}, (_, i) => i + 40).map(w => (
@@ -348,7 +397,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">لون البشرة</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">لون البشرة</label>
                   <select name="skin_color" required value={formData.skin_color} onChange={handleChange} className={selectClass}>
                     <option value="">اختر لون البشرة</option>
                     <option value="أبيض">أبيض</option>
@@ -358,7 +407,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">بنية الجسم</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">بنية الجسم</label>
                   <select name="body_type" required value={formData.body_type} onChange={handleChange} className={selectClass}>
                     <option value="">اختر بنية الجسم</option>
                     <option value="نحيف">نحيف</option>
@@ -370,7 +419,7 @@ export default function ProfileSetupPage() {
                 </div>
                 {gender === 'male' && (
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">اللحية</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">اللحية</label>
                     <select name="beard" required value={formData.beard} onChange={handleChange} className={selectClass}>
                       <option value="">اختر</option>
                       <option value="yes">نعم، ملتحي</option>
@@ -379,7 +428,7 @@ export default function ProfileSetupPage() {
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الحالة الصحية</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الحالة الصحية</label>
                   <select name="health_status" required value={formData.health_status} onChange={handleChange} className={selectClass}>
                     <option value="">اختر</option>
                     <option value="سليم الحمد لله">سليم الحمد لله</option>
@@ -387,7 +436,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">وجود إعاقة</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">وجود إعاقة</label>
                   <select name="disabilities" required value={formData.disabilities} onChange={handleChange} className={selectClass}>
                     <option value="">اختر</option>
                     <option value="لا توجد">لا توجد</option>
@@ -407,11 +456,11 @@ export default function ProfileSetupPage() {
               <h2 className="text-xl font-semibold text-indigo-700 border-b border-indigo-100 pb-2">بيانات العمل والمستوى الدخل</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الوظيفة</label>
-                  <input type="text" name="job" required value={formData.job} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الوظيفة</label>
+                  <input type="text" name="job" required value={formData.job} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 dark:border-slate-700 dark:bg-slate-800 py-2 px-3 border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">المهنة</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">المهنة</label>
                   <select name="profession" required value={formData.profession} onChange={handleChange} className={selectClass}>
                     <option value="">اختر المهنة</option>
                     <option value="طبيب">طبيب</option>
@@ -432,7 +481,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">المؤهل</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">المؤهل</label>
                   <select name="qualification" required value={formData.qualification} onChange={handleChange} className={selectClass}>
                     <option value="">اختر المؤهل</option>
                     <option value="بدون مؤهل">بدون مؤهل</option>
@@ -447,7 +496,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">مستوى الدخل</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">مستوى الدخل</label>
                   <select name="income_level" required value={formData.income_level} onChange={handleChange} className={selectClass}>
                     <option value="">اختر مستوى الدخل</option>
                     <option value="ضعيف">ضعيف</option>
@@ -467,7 +516,7 @@ export default function ProfileSetupPage() {
               <h2 className="text-xl font-semibold text-indigo-700 border-b border-indigo-100 pb-2">بيانات التدين</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الالتزام الديني</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الالتزام الديني</label>
                   <select name="religious_commitment" required value={formData.religious_commitment} onChange={handleChange} className={selectClass}>
                     <option value="">اختر</option>
                     <option value="ملتزم جداً">ملتزم جداً</option>
@@ -477,7 +526,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الالتزام بالصلاة</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الالتزام بالصلاة</label>
                   <select name="prayer_commitment" required value={formData.prayer_commitment} onChange={handleChange} className={selectClass}>
                     <option value="">اختر</option>
                     <option value="أصلي دائماً">أصلي دائماً</option>
@@ -496,7 +545,7 @@ export default function ProfileSetupPage() {
               <h2 className="text-xl font-semibold text-indigo-700 border-b border-indigo-100 pb-2">بيانات الارتباط</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ما رأيك في القايمة؟</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">ما رأيك في القايمة؟</label>
                   <select name="qayma_opinion" required value={formData.qayma_opinion} onChange={handleChange} className={selectClass}>
                     <option value="">اختر</option>
                     <option value="موافق عليها">موافق عليها</option>
@@ -505,7 +554,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ما رأيك في الشبكة والمهر؟</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">ما رأيك في الشبكة والمهر؟</label>
                   <select name="mahr_opinion" required value={formData.mahr_opinion} onChange={handleChange} className={selectClass}>
                     <option value="">اختر</option>
                     <option value="ضروري ومهم">ضروري ومهم</option>
@@ -513,7 +562,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الميعاد المتوقع للارتباط</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الميعاد المتوقع للارتباط</label>
                   <select name="marriage_time" required value={formData.marriage_time} onChange={handleChange} className={selectClass}>
                     <option value="">اختر</option>
                     <option value="في أسرع وقت">في أسرع وقت</option>
@@ -522,7 +571,7 @@ export default function ProfileSetupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">الرؤية الشرعية</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الرؤية الشرعية</label>
                   <select name="roya_opinion" required value={formData.roya_opinion} onChange={handleChange} className={selectClass}>
                     <option value="">اختر</option>
                     <option value="ضرورية في المنزل">ضرورية في المنزل بوجود الأهل</option>
@@ -540,12 +589,12 @@ export default function ProfileSetupPage() {
                 <h2 className="text-xl font-semibold text-indigo-700 border-b border-indigo-100 pb-2 mb-4">مواصفات وتفاصيل</h2>
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">الهوايات والاهتمامات</label>
-                    <input type="text" name="hobbies" required value={formData.hobbies} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الهوايات والاهتمامات</label>
+                    <input type="text" name="hobbies" required value={formData.hobbies} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 dark:border-slate-700 dark:bg-slate-800 py-2 px-3 border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">مواصفات شريك الحياة (140 حرف كحد أدنى)</label>
-                    <textarea name="partner_specs" required value={formData.partner_specs} onChange={handleChange} rows={4} className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="تحدث بالتفصيل عما تبحث عنه..."></textarea>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">مواصفات شريك الحياة (140 حرف كحد أدنى)</label>
+                    <textarea name="partner_specs" required value={formData.partner_specs} onChange={handleChange} rows={4} className="mt-1 block w-full rounded-md border-gray-300 dark:border-slate-700 dark:bg-slate-800 py-2 px-3 border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="تحدث بالتفصيل عما تبحث عنه..."></textarea>
                     <div className="text-xs mt-1 flex justify-end">
                       <span className={formData.partner_specs.length < 140 ? "text-red-500 font-medium" : "text-green-600 font-medium"}>
                         {formData.partner_specs.length} / 140
@@ -553,8 +602,8 @@ export default function ProfileSetupPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">نبذة عني (140 حرف كحد أدنى)</label>
-                    <textarea name="about_me" required value={formData.about_me} onChange={handleChange} rows={4} className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="تحدث عن نفسك بالتفصيل..."></textarea>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">نبذة عني (140 حرف كحد أدنى)</label>
+                    <textarea name="about_me" required value={formData.about_me} onChange={handleChange} rows={4} className="mt-1 block w-full rounded-md border-gray-300 dark:border-slate-700 dark:bg-slate-800 py-2 px-3 border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="تحدث عن نفسك بالتفصيل..."></textarea>
                     <div className="text-xs mt-1 flex justify-end">
                       <span className={formData.about_me.length < 140 ? "text-red-500 font-medium" : "text-green-600 font-medium"}>
                         {formData.about_me.length} / 140
@@ -600,26 +649,39 @@ export default function ProfileSetupPage() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex gap-4 pt-6 border-t border-slate-100 mt-8">
-            {step > 1 && (
+          <div className="flex flex-col gap-4 pt-6 border-t border-slate-100 dark:border-slate-800 mt-8">
+            <div className="flex gap-4">
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  className="px-4 py-2 border border-slate-300 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:bg-slate-950 font-medium transition flex items-center"
+                >
+                  <ChevronRight className="w-5 h-5 mr-1" />
+                  السابق
+                </button>
+              )}
+              
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 font-bold transition flex items-center justify-center disabled:bg-indigo-400 text-lg shadow-sm"
+              >
+                {loading ? 'جاري الحفظ...' : step === totalSteps ? 'إنهاء وحفظ' : 'التالي'}
+                {step < totalSteps && <ChevronLeft className="w-5 h-5 ml-1" />}
+              </button>
+            </div>
+            
+            {step < totalSteps && (
               <button
                 type="button"
-                onClick={handlePrev}
-                className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 font-medium transition flex items-center"
+                onClick={saveAndExit}
+                disabled={loading}
+                className="w-full py-3 text-indigo-600 font-semibold rounded-xl bg-indigo-50 hover:bg-indigo-100 transition-colors"
               >
-                <ChevronRight className="w-5 h-5 mr-1" />
-                السابق
+                حفظ التقدم والمتابعة لاحقاً
               </button>
             )}
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 font-bold transition flex items-center justify-center disabled:bg-indigo-400 text-lg shadow-sm"
-            >
-              {loading ? 'جاري الحفظ...' : step === totalSteps ? 'إنهاء وحفظ' : 'التالي'}
-              {step < totalSteps && <ChevronLeft className="w-5 h-5 ml-1" />}
-            </button>
           </div>
           
         </form>
