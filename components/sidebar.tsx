@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Star, Bell, User, Heart, UserX, Users, Trophy, Phone, Share2, LogOut, Menu, BookOpen, HeartHandshake, PauseCircle } from '@/components/my-icons';
+import { Home, Search, Star, Bell, User, Heart, UserX, Users, Trophy, Phone, Share2, LogOut, Menu, BookOpen, HeartHandshake, PauseCircle, Eye } from '@/components/my-icons';
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,7 @@ export default function Sidebar({ profile, mobile = false, unreadCount = 0 }: { 
     { name: 'الرئيسية', href: '/dashboard', icon: Home },
     { name: 'الإشعارات', href: '/notifications', icon: Bell },
     { name: 'الملف الشخصي', href: '/profile', icon: User },
+    { name: 'طلبات الصور', href: '/photo-requests', icon: Eye },
     { name: 'قائمة الاهتمامات', href: '/interests', icon: Heart },
     { name: 'قائمة التجاهل', href: '/ignored', icon: UserX },
     { name: 'من يهتم بي', href: '/interested-in-me', icon: Users },

@@ -40,17 +40,18 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   
   // Check photo permissions if not owner
   let hasPhotoAccess = isOwner;
+  let permission: any = null;
   if (!isOwner && profile.is_photo_private) {
     // Check if there is an approved request
-    const { data: permission } = await supabase
+    const { data } = await supabase
       .from('photo_permissions')
       .select('status')
       .eq('requester_id', user.id)
       .eq('target_id', profile.id)
-      .eq('status', 'approved')
-      .single();
+      .maybeSingle();
       
-    if (permission) {
+    permission = data;
+    if (permission?.status === 'approved') {
       hasPhotoAccess = true;
     }
   }
@@ -92,7 +93,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
              </div>
              
              {!isOwner && (
-               <ProfileActions profileId={profile.id} />
+               <ProfileActions 
+                 profileId={profile.id} 
+                 isPhotoPrivate={profile.is_photo_private} 
+                 initialPhotoAccessStatus={permission?.status || null}
+               />
              )}
           </div>
 

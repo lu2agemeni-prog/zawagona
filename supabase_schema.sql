@@ -275,3 +275,29 @@ $$ language plpgsql security definer;
 create trigger on_interest_created
   after insert on public.interests
   for each row execute procedure public.notify_on_interest();
+
+-- Create photo permissions table
+create table public.photo_permissions (
+  id uuid default uuid_generate_v4() primary key,
+  requester_id uuid references public.profiles(id) on delete cascade not null,
+  target_id uuid references public.profiles(id) on delete cascade not null,
+  status text check (status in ('pending', 'approved', 'rejected')) default 'pending',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(requester_id, target_id)
+);
+
+alter table public.photo_permissions enable row level security;
+
+create policy "Users can view their own requests and requests sent to them"
+  on public.photo_permissions for select
+  using (auth.uid() = requester_id or auth.uid() = target_id);
+
+create policy "Users can create requests"
+  on public.photo_permissions for insert
+  with check (auth.uid() = requester_id);
+
+create policy "Users can update requests sent to them"
+  on public.photo_permissions for update
+  using (auth.uid() = target_id)
+  with check (auth.uid() = target_id);

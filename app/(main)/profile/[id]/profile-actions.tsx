@@ -1,14 +1,24 @@
 'use client';
 
-import { Heart, MessageCircle, Ban, Bookmark } from '@/components/my-icons';
+import { Heart, MessageCircle, Ban, Bookmark, Eye } from '@/components/my-icons';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function ProfileActions({ profileId }: { profileId: string }) {
+export default function ProfileActions({ 
+  profileId, 
+  isPhotoPrivate, 
+  initialPhotoAccessStatus 
+}: { 
+  profileId: string, 
+  isPhotoPrivate?: boolean, 
+  initialPhotoAccessStatus?: string | null 
+}) {
   const [isLiked, setIsLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPhotoLoading, setIsPhotoLoading] = useState(false);
+  const [photoStatus, setPhotoStatus] = useState<string | null>(initialPhotoAccessStatus || null);
   const supabase = createClient();
   const router = useRouter();
 
@@ -47,6 +57,26 @@ export default function ProfileActions({ profileId }: { profileId: string }) {
     }
   };
 
+  const handlePhotoRequest = async () => {
+    setIsPhotoLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      if (photoStatus === 'pending') {
+        await supabase.from('photo_permissions').delete().match({ requester_id: user.id, target_id: profileId });
+        setPhotoStatus(null);
+      } else if (!photoStatus) {
+        await supabase.from('photo_permissions').insert({ requester_id: user.id, target_id: profileId, status: 'pending' });
+        setPhotoStatus('pending');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsPhotoLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
       <button 
@@ -61,6 +91,21 @@ export default function ProfileActions({ profileId }: { profileId: string }) {
         <Heart className={`w-4 h-4 ${isLiked ? 'fill-rose-500' : ''}`} />
         {isLiked ? 'إلغاء الإعجاب' : 'إعجاب'}
       </button>
+
+      {isPhotoPrivate && photoStatus !== 'approved' && (
+        <button 
+          onClick={handlePhotoRequest}
+          disabled={isPhotoLoading}
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
+            photoStatus === 'pending'
+              ? 'bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100' 
+              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm shadow-indigo-200'
+          }`}
+        >
+          <Eye className={`w-4 h-4 ${photoStatus === 'pending' ? 'text-indigo-600' : 'text-white'}`} />
+          {photoStatus === 'pending' ? 'إلغاء طلب الصور' : 'طلب رؤية الصور'}
+        </button>
+      )}
       
       <Link href="/messages" className="px-4 py-2 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
         <MessageCircle className="w-4 h-4" /> مراسلة
