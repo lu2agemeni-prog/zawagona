@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Ban, Bookmark } from '@/components/my-icons';
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function ProfileActions({ profileId }: { profileId: string }) {
   const [isLiked, setIsLiked] = useState(false);
@@ -46,9 +47,9 @@ export default function ProfileActions({ profileId }: { profileId: string }) {
         {isLiked ? 'إلغاء الإعجاب' : 'إعجاب'}
       </button>
       
-      <button className="px-4 py-2 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
+      <Link href="/messages" className="px-4 py-2 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
         <MessageCircle className="w-4 h-4" /> مراسلة
-      </button>
+      </Link>
       
       <div className="flex gap-2 mr-auto md:mr-4">
         <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors" title="حفظ">
